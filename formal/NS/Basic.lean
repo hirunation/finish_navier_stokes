@@ -54,21 +54,6 @@ structure SmoothDivFreeField where
   div_free : ∀ x, divergence v x = 0
 
 /--
-`v` satisfies the stationary Navier–Stokes equations.
-
-**Stub.** The full predicate asserts that there exists a smooth
-pressure field `p : R3 → ℝ` with
-`-ν • Δv(x) + (v·∇)v(x) + ∇p(x) = 0` for every `x ∈ R3`.
-Authoring the componentwise Laplacian, the directional-derivative
-advection term, and the gradient of the pressure in Mathlib calls
-is a self-contained chunk of work deferred to a subsequent
-session.  For now this is `True`-valued so theorem statements
-typecheck; proofs assuming this hypothesis cannot yet extract any
-PDE content from it.
--/
-def SatisfiesStationaryNS (_v : SmoothDivFreeField) : Prop := True
-
-/--
 Membership in the Lorentz weak-$L^3$ space
 $L^{3,\infty}(\mathbb{R}^3)$, defined via the distribution
 function:

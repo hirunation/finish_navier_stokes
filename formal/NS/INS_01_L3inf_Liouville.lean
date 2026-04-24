@@ -1,4 +1,5 @@
 import NS.Basic
+import NS.PDE
 
 /-!
 # NS.INS_01_L3inf_Liouville — machine-verification target for INS-01
@@ -30,24 +31,33 @@ Navier–Stokes equations on ℝ³ with `v ∈ L^{3,∞}(ℝ³)`.  Then
 
 ## Current state: SORRY BODY
 
-The theorem statement below is expressed against the placeholder
-types in `NS.Basic` (all axiomatic stubs).  The proof body is
-`sorry`.  Proof closure is scheduled for a later session; when
-it lands, the corresponding smart-data entry's
+The theorem is stated against real Mathlib-backed definitions
+(Session N+2 and N+3):
+
+- `SmoothDivFreeField` — concrete structure in `NS.Basic`.
+- `SatisfiesStationaryNS` — real PDE predicate in `NS.PDE`
+  asserting $-\nu\Delta v + (v \cdot \nabla) v + \nabla p = 0$
+  for some $\nu > 0$ and smooth pressure field $p$.
+- `InWeakL3` — distribution-function definition in `NS.Basic`.
+- `IsZero` — pointwise definition in `NS.Basic`.
+
+The proof body is `sorry`.  Closure is sequenced per
+`desk/06_lean_formalization_plan.md`: port §2 hat function,
+§4 Bogovskii, §5 Caccioppoli, §6 Lorentz, §7 GN, §8 ODE, §9
+integration, §10 finite-Dirichlet closing — in that order.  When
+the proof closes, the corresponding smart-data entry's
 `verification.machine_verification` field updates from `pending`
 to `NS.INS_01_L3inf_Liouville`.
 
-### Mathlib dependencies expected at proof-closure time
+### Additional Mathlib dependencies expected at proof-closure time
 
-- `Mathlib.MeasureTheory.Function.LpSpace` — Lorentz `L^{p,q}`
-  embeddings (pending upstream Lorentz-space merge).
-- `Mathlib.Analysis.Calculus.ContDiff` — `C^∞` smoothness.
-- `Mathlib.Analysis.InnerProductSpace` — divergence, gradient,
-  weak derivatives.
-- `Mathlib.MeasureTheory.Integral.Bochner` — weighted integrals.
-- A Caccioppoli lemma (likely to author locally; no mathlib
-  version).
-- A Bogovskii-operator construction (to author).
+- Weighted Bochner integration for the hat-function energy
+  $\mathcal{E}(\rho) = \int |\nabla v|^2 \varphi(|x|/\rho)\,dx$.
+- Gagliardo–Nirenberg on a bounded Lipschitz domain (annulus).
+- Calderón–Zygmund $L^p$ boundedness for the pressure estimate.
+- A Bogovskii-operator construction on John domains (no Mathlib
+  equivalent; will be authored locally).
+- A Caccioppoli-style lemma specific to NS (not in Mathlib).
 
 ### Attribution
 
