@@ -1,6 +1,7 @@
 import NS.Basic
 import NS.PDE
 import NS.HatFunction
+import NS.Energy
 import NS.INS_01_L3inf_Liouville
 
 /-!
@@ -21,6 +22,10 @@ Module index:
 - `NS.HatFunction` — piecewise-linear hat `hat θ t` of
   Notation 2.1, with the elementary properties (support,
   non-negativity, value on each piece, bound ≤ 1).
+- `NS.Energy` — Frobenius-norm gradient `gradNormSq`,
+  Euclidean annulus `annulus`, weighted energy
+  `weightedEnergy`, annular gradient `annularGradSq`, and the
+  three parts of Lemma 2.2 (stated, proofs `sorry`).
 - `NS.INS_01_L3inf_Liouville` — Theorem 1.1 of the paper
   (currently `sorry`-bodied).
 -/

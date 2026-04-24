@@ -39,6 +39,16 @@ abbrev R3 : Type := Fin 3 → ℝ
 /-- The canonical basis vector of `R3` along axis `i`. -/
 noncomputable def basis (i : Fin 3) : R3 := Pi.single i (1 : ℝ)
 
+/-- Euclidean ($L^2$) norm on `R3 = Fin 3 → ℝ`:
+    `enorm x = (x₀² + x₁² + x₂²)^{1/2}`.
+
+    Distinct from the default Pi sup norm `‖x‖`; the paper's
+    `|x|` is always the Euclidean norm, so energy integrals and
+    annulus definitions in `NS.Energy` use `enorm`. -/
+noncomputable def enorm (x : R3) : ℝ := Real.sqrt (∑ i : Fin 3, (x i)^2)
+
+lemma enorm_nonneg (x : R3) : 0 ≤ enorm x := Real.sqrt_nonneg _
+
 /-- Pointwise divergence of a differentiable vector field
     `v : R3 → R3`, defined as `∑ i, ∂ᵢ (v x) i`. -/
 noncomputable def divergence (v : R3 → R3) (x : R3) : ℝ :=
