@@ -80,6 +80,22 @@ lemma pointwise_bound_on_annulus
     _ ≤ gradNormSq V.v x * enorm x :=
         mul_le_mul_of_nonneg_left h1 h2
 
+/-- The Euclidean norm `enorm` is continuous on `R3`. -/
+lemma continuous_enorm : Continuous (enorm : R3 → ℝ) := by
+  unfold enorm
+  apply Real.continuous_sqrt.comp
+  exact continuous_finset_sum _ (fun i _ => (continuous_apply i).pow 2)
+
+/-- The Euclidean norm `enorm` is measurable on `R3`. -/
+lemma measurable_enorm : Measurable (enorm : R3 → ℝ) :=
+  continuous_enorm.measurable
+
+/-- The annulus is a measurable set. -/
+lemma measurableSet_annulus (a b : ℝ) : MeasurableSet (annulus a b) := by
+  unfold annulus
+  exact (measurableSet_lt measurable_const measurable_enorm).inter
+        (measurableSet_lt measurable_enorm measurable_const)
+
 /-- Hat-weighted energy at scale `ρ`:
     `∫ |∇v(x)|² · hat θ (|x|ₑ/ρ) dx`. -/
 noncomputable def weightedEnergy (θ : ℝ) (V : SmoothDivFreeField) (ρ : ℝ) : ℝ :=
@@ -106,7 +122,66 @@ theorem weightedEnergy_deriv
         * ∫ x in annulus (θ * ρ) ρ, gradNormSq V.v x * enorm x := by
   sorry
 
-/-- **Lemma 2.2, first inequality.** `E'(ρ) ≥ (θ / ((1-θ)ρ)) · D(ρ)`. -/
+/-- **Lemma 2.2, first inequality, conditional form.**
+    Given integrability of `gradNormSq V.v` and
+    `gradNormSq V.v · enorm` on the annulus, the inequality
+    `(θ / ((1-θ)ρ)) · D(ρ) ≤ E'(ρ)` follows from
+    `weightedEnergy_deriv` plus the pointwise bound and set
+    integral monotonicity.
+
+    For smooth `SmoothDivFreeField` on a bounded annulus, both
+    integrability hypotheses hold automatically by continuity +
+    boundedness of the closed annulus; that derivation is
+    deferred to a separate session. -/
+theorem annularGradSq_lb_of_integrable
+    {θ : ℝ} (hθ0 : 0 < θ) (hθ1 : θ < 1)
+    (V : SmoothDivFreeField) {ρ : ℝ} (hρ : 0 < ρ)
+    (h_int_f : IntegrableOn (gradNormSq V.v) (annulus (θ * ρ) ρ))
+    (h_int_g : IntegrableOn
+                  (fun x => gradNormSq V.v x * enorm x)
+                  (annulus (θ * ρ) ρ)) :
+    (θ / ((1 - θ) * ρ)) * annularGradSq θ V ρ
+      ≤ deriv (weightedEnergy θ V) ρ := by
+  rw [weightedEnergy_deriv hθ0 hθ1 V hρ]
+  have h1θ : 0 < 1 - θ := by linarith
+  have hρ2 : 0 < ρ ^ 2 := by positivity
+  have hprod : 0 < (1 - θ) * ρ ^ 2 := mul_pos h1θ hρ2
+  have hinv : (0 : ℝ) ≤ 1 / ((1 - θ) * ρ ^ 2) :=
+    le_of_lt (one_div_pos.mpr hprod)
+  have hθne : θ ≠ 0 := ne_of_gt hθ0
+  have h1θne : (1 - θ) ≠ 0 := ne_of_gt h1θ
+  have hρne : ρ ≠ 0 := ne_of_gt hρ
+  -- Factor the LHS so the (1/((1-θ)ρ²)) prefactor matches the RHS:
+  have lhs_rw : (θ / ((1 - θ) * ρ)) * annularGradSq θ V ρ
+              = (1 / ((1 - θ) * ρ ^ 2))
+                  * (θ * ρ * annularGradSq θ V ρ) := by
+    field_simp
+  rw [lhs_rw]
+  -- Strip the common nonneg factor:
+  apply mul_le_mul_of_nonneg_left _ hinv
+  -- Goal: θ * ρ * annularGradSq θ V ρ
+  --       ≤ ∫ x in annulus (θ*ρ) ρ, gradNormSq V.v x * enorm x
+  -- Pull the constant `θ * ρ` inside the integral:
+  have const_pull :
+      θ * ρ * annularGradSq θ V ρ
+        = ∫ x in annulus (θ * ρ) ρ, θ * ρ * gradNormSq V.v x := by
+    unfold annularGradSq
+    rw [integral_const_mul]
+  rw [const_pull]
+  -- Apply set integral monotonicity:
+  exact setIntegral_mono_on
+    (h_int_f.const_mul (θ * ρ)) h_int_g (measurableSet_annulus _ _)
+    (fun x hx => pointwise_bound_on_annulus hx)
+
+/-- **Lemma 2.2, first inequality.** `E'(ρ) ≥ (θ / ((1-θ)ρ)) · D(ρ)`.
+
+    The unconditional form is reached when integrability of
+    `gradNormSq V.v` (and its product with `enorm`) on the
+    annulus is established as an automatic consequence of
+    smoothness + boundedness — deferred to a separate session.
+    The current `sorry` body delegates to
+    `annularGradSq_lb_of_integrable` modulo those integrability
+    hypotheses. -/
 theorem annularGradSq_lb
     {θ : ℝ} (hθ0 : 0 < θ) (hθ1 : θ < 1)
     (V : SmoothDivFreeField) {ρ : ℝ} (hρ : 0 < ρ) :
