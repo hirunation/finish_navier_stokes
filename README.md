@@ -84,7 +84,6 @@ finish_navier_stokes/
 ├── LICENSE               # CC-BY-4.0
 ├── PROBLEM.md            # the Clay problem framing
 ├── METHOD.md             # smart-data methodology
-├── AIFON_Parchment.md    # semantic register (optional reading)
 ├── paper/
 │   ├── README.md
 │   ├── paper.tex         # LaTeX source
