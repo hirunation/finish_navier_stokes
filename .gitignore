@@ -1,0 +1,46 @@
+# LaTeX build artifacts (keep paper.pdf, ignore the rest)
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+paper/*.bbl
+paper/*.blg
+paper/*.nav
+paper/*.snm
+paper/*.vrb
+
+# Lean 4 build artifacts
+formal/.lake/
+formal/build/
+formal/lakefile.olean
+**/*.olean
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+\#*\#
+.\#*
+
+# Direnv
+.envrc
+.direnv/

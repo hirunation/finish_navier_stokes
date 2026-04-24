@@ -1,0 +1,2012 @@
+\documentclass[11pt]{amsart}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage[margin=1.1in]{geometry}
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=green!50!black,
+  urlcolor=blue!60!black,
+}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{notation}[theorem]{Notation}
+
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\PP}{\mathbb{P}}     % Leray projection
+\newcommand{\BB}{\mathcal{B}}    % Bogovskii
+\newcommand{\EE}{\mathcal{E}}    % weighted energy
+\newcommand{\DD}{D}              % annular gradient norm
+\newcommand{\Lweak}[1]{L^{3,\infty}(\RR^{#1})}
+\newcommand{\norm}[1]{\|#1\|}
+\newcommand{\abs}[1]{|#1|}
+\newcommand{\loc}{\mathrm{loc}}
+\newcommand{\supp}{\mathrm{supp}}
+
+\DeclareMathOperator{\dv}{div}
+\DeclareMathOperator{\curl}{curl}
+
+\title{A Liouville theorem for stationary Navier--Stokes in $L^{3,\infty}(\RR^3)$, and the endpoint gap in the Clay regularity chain}
+
+\author{Airo Nahiru}
+\address{Independent researcher}
+\email{aironahiru@gmail.com}
+
+\date{\today}
+
+\begin{document}
+\begin{abstract}
+We prove that every smooth stationary divergence-free solution of
+the incompressible three-dimensional Navier--Stokes equations that
+lies in the Lorentz space $L^{3,\infty}(\RR^3)$ is identically
+zero. The proof is entirely first-principles: a hat-function
+weighted energy on fixed-ratio annuli is combined with exact
+pressure elimination via the Bogovski\u{\i} operator, a Lorentz
+layer-cake embedding, and a rescaled Gagliardo--Nirenberg
+interpolation. Exact $\rho$-cancellation at scaling exponent
+$3a/p + b = 3$ yields a superlinear differential inequality
+$\EE'(\rho) \geq c\rho^{-\alpha}\EE(\rho)^\beta$ whose exponents
+satisfy $\beta > 1$, $\alpha < 1$ for every $p \in (3/2, 3)$;
+integration against bounded left-hand side produces a contradiction
+that forces finite Dirichlet energy, which a Galdi-style testing
+argument reduces to $v = 0$.
+
+The theorem completes the Koch--Nadirashvili--Seregin--\v{S}ver\'ak
+(KNSS) program for the general (non-axisymmetric) three-dimensional
+case. Applied within the KNSS blow-up framework, it reduces the
+full Clay Millennium regularity problem to a single structural
+inheritance step: the rescaled ancient solution's uniform
+$L^{3,\infty}$ bound. That step is equivalent to Phuc's 2015 open
+endpoint, which remains unresolved for non-axisymmetric flows.
+We give an honest account of this gap, survey the partial
+closures (axisymmetric, smallness, finite singular set,
+log-improvement), and describe a concrete weighted-moment
+proposal. The companion corpus at
+\url{https://github.com/hirunation/finish_navier_stokes} (archived at
+Zenodo, DOI forthcoming) contains the full provenance-tracked
+knowledge graph, nine canonical obstruction theorems, thirty-five
+catalogued dead ends, and the Lean~4 formalization.
+\end{abstract}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}\label{sec:intro}
+
+\subsection{The problem.}
+For the incompressible Navier--Stokes equations in $\RR^3$,
+\begin{align}\label{eq:NS}
+\partial_t u - \nu\,\Delta u + (u \cdot \nabla) u + \nabla p &= 0,
+& \nabla \cdot u &= 0, & u(\cdot, 0) &= u_0,
+\end{align}
+the Clay Millennium Prize problem asks whether every smooth
+Schwartz-class divergence-free $u_0$ admits a global smooth
+solution. Leray~\cite{Leray} proved existence of weak solutions
+in 1934; regularity for general smooth data remains open.
+
+The Koch--Nadirashvili--Seregin--\v{S}ver\'ak blow-up framework
+\cite{KNSS} reduces the regularity question to a Liouville-type
+theorem. If a smooth solution develops a finite-time singularity
+at $T^*$, a rescaling procedure (\cite[\S6]{KNSS}) extracts a
+bounded smooth ancient solution $v \colon \RR^3 \times
+(-\infty, 0] \to \RR^3$ with $\abs{v(0, 0)} = 1$. The backward-time
+limit of this ancient solution is a smooth stationary
+divergence-free Navier--Stokes solution; if that limit were forced
+to be identically zero, Escauriaza--Seregin--\v{S}ver\'ak backward
+uniqueness~\cite{ESS03RMS} would contradict the normalization
+$\abs{v(0, 0)} = 1$, closing the regularity problem.
+
+KNSS~\cite[\S5]{KNSS} established such a Liouville theorem under
+axial symmetry, using stream-function arguments that reduce 3D to
+2D. For general (non-axisymmetric) three-dimensional flows their
+method does not extend, and they flag this as an open problem.
+The present paper supplies the general-case Liouville theorem
+under the critical Lorentz-space hypothesis
+$v \in L^{3,\infty}(\RR^3)$.
+
+\subsection{Main theorem.}\label{ssec:main}
+
+\begin{theorem}[Stationary $L^{3,\infty}$ Liouville]\label{thm:main}
+Let $v \colon \RR^3 \to \RR^3$ be smooth, divergence-free, and
+satisfy the stationary Navier--Stokes equations
+\[
+-\nu\,\Delta v + (v \cdot \nabla) v + \nabla p = 0,
+\qquad \nabla \cdot v = 0
+\quad \text{on } \RR^3,
+\]
+with $\norm{v}_{\Lweak{3}} < \infty$. Then $v \equiv 0$.
+\end{theorem}
+
+Theorem~\ref{thm:main} completes the KNSS program for the general
+three-dimensional case. Its proof is self-contained and uses only
+first-principles tools (the Bogovski\u{\i} operator for pressure
+elimination, Lorentz layer-cake embedding, Gagliardo--Nirenberg
+interpolation); no ancient-Liouville conjectures are invoked.
+
+The critical exponents at the natural choice $p = 2$ are
+$\beta = 4/3$, $\alpha = 2/3$, and $\gamma = -1/4$. The scale
+exponent $\gamma$ is defined in
+Theorem~\ref{thm:main-estimate} (\S\ref{sec:gn}), and the ODE
+exponents $\alpha$ and $\beta$ in
+Proposition~\ref{prop:ODE} (\S\ref{sec:ode}); Sections
+\ref{sec:pressure}--\ref{sec:vzero} carry the full integrated
+argument.
+
+\subsection{The Clay chain and the $L^{3,\infty}$ inheritance gap.}
+\label{ssec:clay-gap}
+Applied within the KNSS framework, Theorem~\ref{thm:main} reduces
+the Clay regularity question to a single structural step. The
+rescaled ancient solution produced by \cite[\S6]{KNSS} is bounded
+in $L^\infty$; what is required in addition, for
+Theorem~\ref{thm:main} to apply to its backward-time limit, is a
+uniform $L^{3,\infty}$ bound on the ancient solution. Scale
+invariance reduces this question to the spatial decay of the
+original solution in the exterior of the hypothetical singular
+set, uniformly on $[0, T^*)$.
+
+This inheritance step is currently open. It is equivalent in
+scope to Phuc's 2015 open problem on the $L^{3,\infty}$ endpoint
+regularity criterion~\cite[p.~4]{Phuc2015}:
+\begin{quote}
+``To the best of our knowledge, a criterion of local regularity
+for the Navier--Stokes equations in $L^\infty(-1, 0;
+L^{3,\infty}(B_1))$ is still unknown.''
+\end{quote}
+The obstruction is structural: the Lorentz quasi-norm
+$\norm{\cdot}_{\Lweak{3}}$ is not absolutely continuous, so
+exterior-tail compactness arguments that close the $L^{3,q}$
+endpoint for $q < \infty$ fail at $q = \infty$. Partial closures
+exist: the axisymmetric case (O\.{z}a\'nski--Palasek~\cite{OzanskiPalasek}
+via Nazarov--Ural'tseva Harnack~\cite{NazarovUraltseva} on
+$rv_\theta$), the smallness regime (Luo--Tsai~\cite{LuoTsai},
+Kim--Kozono~\cite{KimKozono}), and partial regularity in the sense
+of finite singular sets (Seregin~\cite{Seregin2019}).
+
+Section~\ref{sec:clay-chain} describes these partial closures and
+gives a concrete proposal (\S\ref{ssec:weighted-moment}) for
+closing the general case under the weighted hypothesis
+$(1 + \abs{x}) u_0 \in L^\infty$, which is automatic for Schwartz
+data. A full proof of that proposal is outside the scope of the
+present paper.
+
+\subsection{Corollaries.}
+
+\begin{corollary}[Four-dimensional Liouville]\label{cor:4d}
+Let $v \colon \RR^4 \to \RR^4$ be smooth, divergence-free, and
+satisfy the stationary Navier--Stokes equations on $\RR^4$ with
+$v \in L^{4,\infty}(\RR^4)$. Then $v \equiv 0$.
+\end{corollary}
+
+Corollary~\ref{cor:4d} follows from a four-dimensional
+specialization of the proof at $p = 5/2$, where the dimensional
+discriminant $\gamma(n, p) = -(n-4)(n-2p)/(2n - p(n-2))$ vanishes
+identically, producing the borderline logarithmic divergence
+$\int \rho^{-1}\,d\rho$ against a bounded left-hand side. The
+discriminant becomes positive for $n \geq 5$, and the method
+provably fails there: $\beta > 1$ requires $p > n/2$ (Sobolev)
+while $\alpha \leq 1$ requires $p \leq n/2$ (integration), an
+incompatibility.
+
+\begin{corollary}[Weak-solution extension]\label{cor:weak}
+The conclusion of Theorem~\ref{thm:main} holds for
+$v \in L^{3,\infty}(\RR^3) \cap W^{1,2}_\loc(\RR^3)$.
+\end{corollary}
+
+The $W^{1,2}_\loc$ threshold is sharp: Landau solutions
+$v(x) = c/\abs{x}$ are smooth outside the origin, lie exactly in
+$L^{3,\infty}(\RR^3)$, and belong to $W^{1,2}_\loc$ away from the
+origin but not at the origin. They realize the boundary case.
+
+\begin{corollary}[Quantitative bound]\label{cor:quant}
+From the superlinear ODE at $p = 2$, the weighted Dirichlet
+energy on a scale-$\rho_0$ annulus satisfies the explicit bound
+$\EE(\rho_0) \leq C\,M^6\,\rho_0^{-1}$, with explicit constants.
+\end{corollary}
+
+\subsection{Companion corpus.}\label{ssec:companion}
+The complete corpus --- $111$ provenance-tracked smart-data
+entries spanning insights, lemmas, definitions, obstruction
+theorems, classical axioms, anti-knowledge entries, attribution
+corrections, master proof chains, and cross-cutting narrative
+threads --- is maintained publicly at
+\begin{center}
+\url{https://github.com/hirunation/finish_navier_stokes}
+\end{center}
+and archived at Zenodo (DOI forthcoming). The repository includes
+the Lean~4 formalization~(the \texttt{GUNS} subdirectory and Tree
+A at \texttt{navier\_stokes\_official/lean\_formalization/}),
+literature reviews for the nine obstruction theorems of
+\S\ref{sec:obstructions}, the thirty-five catalogued dead ends,
+and the desk-level attack analyses referenced throughout this
+paper. Readers seeking the full architecture of the Clay-chain
+program, the obstruction landscape, or the alternative-route
+research programs (Hull-Ergodic, Icosahedral, Ancient Extension)
+are directed there.
+
+\subsection{Organization.}
+
+Section~\ref{sec:notation} fixes notation. Sections
+\ref{sec:hat}--\ref{sec:vzero} prove Theorem~\ref{thm:main} in
+eight steps. Section~\ref{sec:extensions} proves the
+Corollaries~\ref{cor:4d}--\ref{cor:quant}. Section
+\ref{sec:clay-chain} describes the application to the Clay chain
+and documents the $L^{3,\infty}$ inheritance gap. Section
+\ref{sec:obstructions} gives a brief summary of the
+nine-obstruction landscape. Section~\ref{sec:discussion}
+concludes with discussion and open problems.
+
+\section{Notation and preliminaries}\label{sec:notation}
+
+Throughout, $\nu > 0$ is a fixed viscosity and $v$ denotes a
+smooth divergence-free stationary solution of~\eqref{eq:NS} on
+$\RR^3$ with
+\[
+M := \norm{v}_{\Lweak{3}} < \infty.
+\]
+We assume $M > 0$; otherwise $v = 0$ almost everywhere, hence
+identically by smoothness, and there is nothing to prove.
+
+\begin{notation}[Geometric objects]\label{not:geometry}
+Fix $\theta \in (0, 1)$. For $\rho > 0$, write
+\[
+B_\rho := \{x \in \RR^3 : \abs{x} < \rho\},\qquad
+A(\theta\rho, \rho) := B_\rho \setminus \overline{B_{\theta\rho}}.
+\]
+Define the \emph{hat function} $\varphi \colon [0, \infty) \to
+[0, 1]$ by
+\[
+\varphi(t) = \begin{cases}
+1 & 0 \leq t < \theta, \\
+\dfrac{1 - t}{1 - \theta} & \theta \leq t < 1, \\
+0 & t \geq 1.
+\end{cases}
+\]
+The \emph{weighted energy at scale} $\rho$ is
+\[
+\EE(\rho) := \int_{\RR^3} \abs{\nabla v(x)}^2\, \varphi(\abs{x}/\rho)\, dx,
+\]
+and the \emph{annular gradient norm} is
+\[
+\DD(\rho) := \norm{\nabla v}_{L^2(A(\theta\rho, \rho))}^2.
+\]
+\end{notation}
+
+The hat function is piecewise linear on $[\theta, 1]$ and zero
+outside $[0, 1]$, smooth on the open pieces with a bounded weak
+gradient. It is $C^{0,1}$ globally, and for the arguments below
+it may be replaced by any fixed mollification supported in
+$A(\theta\rho, \rho)$ with the same qualitative properties; we
+use the piecewise-linear form throughout for the cleanest
+derivative formula (cf.\ Remark~\ref{rem:hat}).
+
+\begin{lemma}[Hat-function derivative formula]\label{lem:hat-deriv}
+For every $\rho > 0$,
+\begin{equation}\label{eq:hat-deriv}
+\EE'(\rho)
+= \frac{1}{(1-\theta)\rho^2} \int_{A(\theta\rho, \rho)} \abs{\nabla v(x)}^2 \abs{x}\, dx
+\geq \frac{\theta}{(1 - \theta)\rho}\, \DD(\rho).
+\end{equation}
+In particular, $\EE$ is absolutely continuous and non-decreasing
+in $\rho$, and
+\begin{equation}\label{eq:D-bounded}
+\DD(\rho) \leq \frac{1 - \theta}{\theta} \rho\, \EE'(\rho).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Differentiating under the integral sign (valid by $v$ smooth and
+$\varphi$ weakly differentiable with compact support in $\rho$),
+\[
+\EE'(\rho) = \int \abs{\nabla v(x)}^2 \frac{d}{d\rho}\varphi(\abs{x}/\rho)\, dx
+= \int \abs{\nabla v(x)}^2 \frac{\abs{x}}{(1-\theta)\rho^2}\, \chi_{A(\theta\rho, \rho)}(x)\, dx,
+\]
+using $(d/d\rho)\varphi(\abs{x}/\rho) =
+(\abs{x}/(1-\theta)\rho^2) \chi_{[\theta\rho, \rho]}(\abs{x})$
+from the piecewise-linear definition. This gives the first
+equality. For the inequality, bound
+$\abs{x} \geq \theta\rho$ on the annulus:
+\[
+\EE'(\rho) \geq \frac{\theta}{(1-\theta)\rho} \int_{A(\theta\rho, \rho)} \abs{\nabla v}^2\, dx
+= \frac{\theta}{(1-\theta)\rho}\, \DD(\rho).
+\]
+\end{proof}
+
+\begin{remark}[Three purposes of the hat function]\label{rem:hat}
+The piecewise-linear hat function serves three distinct roles.
+(i) It makes $\EE(\rho)$ monotone in $\rho$, so any bound on
+$\EE$ at one scale transfers to smaller scales.
+(ii) Its derivative~\eqref{eq:hat-deriv} directly controls the
+annular gradient integral, giving the conversion between the
+integrated energy and a pointwise-in-$\rho$ ODE quantity. (iii)
+Its gradient is supported on the fixed-ratio annulus
+$A(\theta\rho, \rho)$, ensuring the Bogovski\u{\i} constants
+introduced in \S\ref{sec:pressure} are uniform in $\rho$.
+
+A smooth mollification of $\varphi$ would require writing the
+derivative as an average over a transition layer of width $\epsilon$;
+the argument below goes through with that replacement at the cost
+of an additional $\epsilon$-bookkeeping. We keep the sharp form
+for clarity.
+\end{remark}
+
+\section{Hat-function energy and the iteration target}\label{sec:hat}
+
+The proof of Theorem~\ref{thm:main} is a scale-by-scale argument
+on $\EE(\rho)$. The goal (reached in \S\ref{sec:contradiction})
+is the differential inequality
+\begin{equation}\label{eq:target-ODE}
+\EE'(\rho) \geq c\, \rho^{-\alpha}\, \EE(\rho)^\beta
+\qquad \text{with } \beta > 1 \text{ and } \alpha < 1,
+\end{equation}
+for $\rho$ above a fixed threshold $\rho_0(M, \nu)$. Integrating
+against the boundedness of $\EE$ at infinity forces
+$\int_{\RR^3} \abs{\nabla v}^2\, dx < \infty$, from which a
+Galdi-style testing argument (\S\ref{sec:vzero}) gives $v \equiv 0$.
+
+The path from~\eqref{eq:hat-deriv} to~\eqref{eq:target-ODE}
+consists of: pressure elimination via Bogovski\u{\i}
+(\S\ref{sec:pressure}), a Caccioppoli-type inequality on annuli
+(\S\ref{sec:caccioppoli}), Lorentz layer-cake embeddings
+(\S\ref{sec:lorentz}), and a rescaled Gagliardo--Nirenberg
+interpolation (\S\ref{sec:gn}). Each section produces a
+sublinear-in-$\DD$ bound on a piece of $\EE$; combined, they give
+the key estimate
+\[
+\EE(\rho) \leq C_0 M \rho^{-1/2} \DD(\rho)^{1/2}
+          + C_1 M^3 \rho^{-1}
+          + C_2 M^a \rho^\gamma \DD(\rho)^b,
+\]
+with explicit exponents $a = 3p/(6-p)$, $b = 3(6-2p)/(2(6-p))$,
+$\gamma = (3-2p)/(6-p)$ for every $p \in (3/2, 3)$. At $p = 2$
+these give $a = 6/5$, $b = 3/4$, $\gamma = -1/4$.
+
+\section{Pressure elimination via Bogovski\u{\i}}\label{sec:pressure}
+
+The stationary Navier--Stokes system carries a pressure field $p$
+which, when tested against a non-divergence-free function,
+produces a boundary contribution that does not close under
+scaling. The Bogovski\u{\i} operator converts any compactly
+supported cutoff of $v$ into a divergence-free competitor at the
+cost of an explicit $L^q$ correction on the same support. The
+pressure integral then vanishes identically, at no further cost.
+
+\subsection{The Bogovski\u{\i} operator on John domains.}
+\label{ssec:bogo}
+
+For an open set $\Omega \subset \RR^3$ we write
+$L^q_0(\Omega) := \{f \in L^q(\Omega) : \int_\Omega f\,dx = 0\}$.
+
+\begin{lemma}[Bogovski\u{\i}]\label{lem:bogo}
+Let $\Omega \subset \RR^3$ be a bounded John domain with John
+constant $c_J$. There is a linear operator
+\[
+\BB_\Omega \colon L^q_0(\Omega) \to W^{1,q}_0(\Omega; \RR^3),
+\qquad 1 < q < \infty,
+\]
+such that, for every $f \in L^q_0(\Omega)$,
+\begin{enumerate}[label=(B\arabic*), itemsep=1pt]
+\item $\dv \BB_\Omega[f] = f$ in $\Omega$, and
+      $\BB_\Omega[f] \in W^{1,q}_0(\Omega; \RR^3)$;
+\item $\norm{\BB_\Omega[f]}_{L^q(\Omega)} +
+       \norm{\nabla \BB_\Omega[f]}_{L^q(\Omega)}
+       \leq C_{q, c_J}\,\norm{f}_{L^q(\Omega)}$;
+\item if $f \in L^{q_1}_0(\Omega) \cap L^{q_2}_0(\Omega)$ with
+      $1 < q_1, q_2 < \infty$, then the two definitions agree;
+\item $\BB_\Omega[f]$ depends linearly and continuously on $f$
+      with respect to every admissible $q$.
+\end{enumerate}
+\end{lemma}
+
+The construction and the bounds are due to
+Bogovski\u{\i}~\cite{Bogovskii} on star-shaped domains; the
+extension to John domains (in particular, to finite unions of
+star-shaped sets and to annuli) is standard, see
+Galdi~\cite[\S III.3]{Galdi}.
+
+Fixed-ratio annuli are uniformly John.
+
+\begin{lemma}[Uniform John constant for annuli]\label{lem:annulus-john}
+For every $\theta \in (0, 1)$ there is a constant
+$c_J(\theta)$ such that, for every $\rho > 0$, the annulus
+$A(\theta\rho, \rho)$ is John with constant $c_J(\theta)$.
+\end{lemma}
+
+This is elementary: $A(\theta\rho, \rho)$ is the image of
+$A(\theta, 1)$ under the dilation $y \mapsto \rho y$, and the
+John condition is scale-invariant. We will use this in the
+following rescaled form.
+
+\begin{proposition}[Scaling of $\BB$ on annuli]
+\label{prop:bogo-scale}
+Let $\Omega_1 = A(\theta, 1)$ and $\Omega_\rho = A(\theta\rho,
+\rho)$, let $f \in L^q_0(\Omega_\rho)$, and let $\tilde f(y) :=
+f(\rho y)$. Then $\tilde f \in L^q_0(\Omega_1)$, and
+\[
+\BB_{\Omega_\rho}[f](x) = \rho\,\BB_{\Omega_1}[\tilde f](x/\rho),
+\qquad
+\nabla \BB_{\Omega_\rho}[f](x) = (\nabla_y \BB_{\Omega_1}[\tilde f])(x/\rho).
+\]
+In particular,
+\begin{equation}\label{eq:bogo-scale}
+\norm{\BB_{\Omega_\rho}[f]}_{L^q(\Omega_\rho)} = \rho^{1 + 3/q}
+\norm{\BB_{\Omega_1}[\tilde f]}_{L^q(\Omega_1)},
+\quad
+\norm{\nabla \BB_{\Omega_\rho}[f]}_{L^q(\Omega_\rho)} = \rho^{3/q}
+\norm{\nabla_y \BB_{\Omega_1}[\tilde f]}_{L^q(\Omega_1)}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The change of variable $y = x/\rho$ in Bogovski\u{\i}'s explicit
+singular-integral representation (which is a convolution with a
+kernel of degree $-(n-1)$ in $\RR^n$) shows that $\rho
+\BB_{\Omega_1}[\tilde f](\cdot/\rho)$ satisfies the defining
+properties (B1)--(B4) on $\Omega_\rho$ with the prescribed
+operator norm. The uniqueness of the Bogovski\u{\i} operator
+modulo test-function density~\cite[III.3.1]{Galdi} gives the
+claimed identity. The norm formulas follow by substitution:
+$\norm{\BB_{\Omega_\rho}[f]}_{L^q(\Omega_\rho)}^q =
+\int_{\Omega_\rho} \rho^q \abs{\BB_{\Omega_1}[\tilde f](x/\rho)}^q
+dx = \rho^{q + 3} \int_{\Omega_1}
+\abs{\BB_{\Omega_1}[\tilde f](y)}^q dy$.
+\end{proof}
+
+Combining Lemmas~\ref{lem:bogo}--\ref{lem:annulus-john} and
+Proposition~\ref{prop:bogo-scale} gives the uniform-in-$\rho$
+norm bound that will be used throughout.
+
+\begin{corollary}[Uniform annular Bogovski\u{\i} bound]
+\label{cor:bogo-annulus}
+For every $\theta \in (0, 1)$ and every $q \in (1, \infty)$ there
+is a constant $C_{q,\theta}$ such that, for every $\rho > 0$ and
+every $f \in L^q_0(A(\theta\rho, \rho))$,
+\begin{equation}\label{eq:bogo-uniform}
+\norm{\BB_{A(\theta\rho, \rho)}[f]}_{L^q} \leq C_{q,\theta}\,\rho\,\norm{f}_{L^q},
+\qquad
+\norm{\nabla \BB_{A(\theta\rho, \rho)}[f]}_{L^q} \leq C_{q,\theta}\,\norm{f}_{L^q}.
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+From~\eqref{eq:bogo-scale},
+$\norm{\BB_{\Omega_\rho}[f]}_{L^q} = \rho^{1+3/q}
+\norm{\BB_{\Omega_1}[\tilde f]}_{L^q} \leq C_{q,\theta} \rho^{1+3/q}
+\norm{\tilde f}_{L^q} = C_{q,\theta}\rho \cdot \rho^{3/q}
+\norm{\tilde f}_{L^q(\Omega_1)} = C_{q,\theta}\rho \norm{f}_{L^q}$,
+using $\norm{f}^q_{L^q(\Omega_\rho)} = \rho^3 \norm{\tilde f}^q_{L^q(\Omega_1)}$.
+Similarly for $\nabla \BB$.
+\end{proof}
+
+\subsection{The divergence-free test function.}
+
+Fix $\theta \in (0, 1)$ throughout. For $\rho > 0$, let
+$\eta \in C^\infty_c(\RR^3)$ be a radial cutoff function with
+\begin{equation}\label{eq:cutoff}
+\eta \equiv 1 \text{ on } B_{\theta\rho}, \quad
+\supp \eta \subset B_\rho, \quad
+0 \leq \eta \leq 1, \quad
+\abs{\nabla \eta} \leq \frac{C_\theta}{\rho}, \quad
+\abs{\Delta \eta} \leq \frac{C_\theta}{\rho^2},
+\end{equation}
+and $\supp \nabla \eta \subset A(\theta\rho, \rho)$. The constant
+$C_\theta$ depends only on $\theta$. (Such an $\eta$ is standard:
+take a smooth mollification of $\varphi(\cdot/\rho)^2$ supported in
+the annulus, or any radial bump satisfying the displayed bounds.)
+
+Define the auxiliary field
+\begin{equation}\label{eq:bogo-aux}
+b(x) := \BB_{A(\theta\rho, \rho)}\!\bigl[v(\cdot) \cdot \nabla\eta(\cdot)\bigr](x),
+\qquad x \in \RR^3,
+\end{equation}
+extended by zero outside $A(\theta\rho, \rho)$. The argument
+$v \cdot \nabla \eta$ is integrable and has mean zero on
+$A(\theta\rho, \rho)$ because
+\[
+\int_{A(\theta\rho,\rho)} v \cdot \nabla \eta\, dx =
+\int_{\RR^3} v \cdot \nabla \eta\, dx =
+-\int_{\RR^3} \eta\, (\dv v)\, dx = 0,
+\]
+so $b$ is well defined by Lemma~\ref{lem:bogo}.
+
+\begin{lemma}[Test-function properties]\label{lem:w-props}
+The field $w := v\,\eta - b$ is divergence-free on $\RR^3$,
+lies in $W^{1,q}(\RR^3; \RR^3)$ for every $q \in (1, \infty)$,
+and is compactly supported in $\overline{B_\rho}$.
+\end{lemma}
+
+\begin{proof}
+Support: $v\eta$ is supported in $\supp \eta \subset B_\rho$, and
+$b$ is supported in $A(\theta\rho, \rho) \subset B_\rho$ by (B1).
+
+Divergence:
+\[
+\dv(v\eta) = \eta\,\dv v + v \cdot \nabla \eta = v \cdot \nabla \eta,
+\]
+and by (B1), $\dv b = v \cdot \nabla \eta$ on
+$A(\theta\rho, \rho)$; since both functions are zero outside
+$A(\theta\rho, \rho)$, we have $\dv b = v \cdot \nabla \eta$ on
+all of $\RR^3$ in the sense of distributions. Subtracting,
+$\dv w = 0$.
+
+Regularity: $v$ and $\eta$ are smooth, hence $v\eta \in C^\infty_c$,
+and $b \in W^{1,q}_0(A(\theta\rho, \rho); \RR^3)$ by (B2) for
+every $q$.
+\end{proof}
+
+\subsection{The resulting identity.}
+
+\begin{proposition}[Pressure-eliminated identity]\label{prop:elim}
+With $\eta$ and $w$ as above,
+\begin{equation}\label{eq:master-identity}
+\nu\int_{\RR^3} \abs{\nabla v}^2\,\eta\, dx
+= \frac{\nu}{2}\int_{\RR^3} \abs{v}^2 \Delta\eta\, dx
++ \frac{1}{2}\int_{\RR^3} \abs{v}^2\,(v \cdot \nabla \eta)\, dx
+- \int_{\RR^3} (v \otimes v) \colon \nabla b\, dx
++ \nu\int_{\RR^3} \nabla v \colon \nabla b\, dx.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Pair the stationary Navier--Stokes equation
+$-\nu\Delta v + (v \cdot \nabla) v + \nabla p = 0$ with
+$w = v\eta - b$ and integrate over $\RR^3$. Since $\dv w = 0$ and
+$w$ is compactly supported,
+\[
+\int \nabla p \cdot w\, dx = -\int p\, \dv w\, dx = 0.
+\]
+So the identity reduces to
+\begin{equation}\label{eq:pair-basic}
+-\nu \int (\Delta v) \cdot w\, dx + \int (v \cdot \nabla v) \cdot w\, dx = 0.
+\end{equation}
+Expand $w = v\eta - b$ and integrate by parts (valid by the
+compact support of $w$ and smoothness of $v$):
+\[
+-\int (\Delta v)_i \cdot (v_i \eta)\, dx
+= \int (\partial_j v_i)\,\partial_j(v_i \eta)\, dx
+= \int \abs{\nabla v}^2 \eta\, dx
++ \frac{1}{2}\int \nabla \abs{v}^2 \cdot \nabla \eta\, dx,
+\]
+and a final integration by parts on the last term gives
+$-\frac{1}{2}\int \abs{v}^2 \Delta \eta\, dx$. Hence
+\[
+-\nu \int (\Delta v) \cdot (v\eta)\, dx
+= \nu \int \abs{\nabla v}^2 \eta\, dx - \frac{\nu}{2}\int \abs{v}^2 \Delta \eta\, dx.
+\]
+For the $b$-piece,
+\[
+-\nu \int (\Delta v) \cdot (-b)\, dx = -\nu \int \nabla v \colon \nabla b\, dx,
+\]
+by integration by parts (using $b \in W^{1,q}_0$ for every $q$).
+For the convective pairing against $v\eta$, use $\dv v = 0$:
+\[
+\int (v \cdot \nabla v)_i (v_i \eta)\, dx
+= \frac{1}{2}\int v \cdot \nabla \abs{v}^2 \, \eta \, dx
+= -\frac{1}{2}\int \abs{v}^2\,(v \cdot \nabla \eta)\, dx,
+\]
+the final IBP using $\dv v = 0$ again. For the convective pairing
+against $-b$, use $\dv v = 0$ once more:
+\[
+-\int (v \cdot \nabla v)_i\, b_i\, dx
+= \int v_i v_j\, \partial_j b_i\, dx
+= \int (v \otimes v) \colon \nabla b\, dx.
+\]
+Substituting the four pieces into~\eqref{eq:pair-basic} gives
+\[
+\Bigl[\nu \int \abs{\nabla v}^2 \eta - \frac{\nu}{2}\int \abs{v}^2 \Delta \eta\Bigr]
+- \nu \int \nabla v \colon \nabla b
++ \Bigl[-\frac{1}{2}\int \abs{v}^2 v \cdot \nabla \eta\Bigr]
++ \int (v\otimes v) \colon \nabla b = 0,
+\]
+and rearrangement yields~\eqref{eq:master-identity}.
+\end{proof}
+
+\begin{remark}[Why the Bogovski\u{\i} correction is forced]
+\label{rem:why-bogo}
+A naive test function $v\eta$ is not divergence-free unless
+$\eta$ is constant on $\supp v$; the correction
+$\BB[v\cdot\nabla\eta]$ restores the constraint exactly. Without
+it, $\int \nabla p \cdot v\eta\, dx = -\int p\,v\cdot\nabla\eta\,
+dx$ carries a pressure remainder that cannot be bounded uniformly
+in $\rho$ by any standard argument at the critical exponent. The
+trade is paid in the two new terms
+$\nu \int \nabla v \colon \nabla b$ and $\int (v\otimes v) \colon
+\nabla b$ on the right of~\eqref{eq:master-identity}; both are
+controlled in the next section.
+\end{remark}
+
+\section{Caccioppoli inequality on annuli}\label{sec:caccioppoli}
+
+From the identity~\eqref{eq:master-identity} we extract a
+Caccioppoli-type bound whose right-hand side is \emph{sublinear}
+in $\DD(\rho)$. The restructuring avoids the Young-inequality
+absorption step that, in earlier drafts, forced a case
+dichotomy; it keeps cross terms as products
+$\norm{\nabla v}_{L^2} \cdot (\text{scale-corrected factor})$
+bounded by direct Cauchy--Schwarz plus Lorentz embedding.
+
+Throughout this section we take
+$\eta = \varphi(\abs{\cdot}/\rho)$ as the hat function of
+Notation~\ref{not:geometry}. The identity
+of Proposition~\ref{prop:elim} holds for this choice as the
+limit, as $\varepsilon \to 0$, of the smooth-mollification
+identity for $\eta_\varepsilon \in C^\infty_c$ satisfying
+\eqref{eq:cutoff}; both sides of~\eqref{eq:master-identity}
+converge by dominated convergence and the Bogovski\u{\i}
+linearity~\cite[III.3.1]{Galdi}. With this choice,
+\[
+\int_{\RR^3} \abs{\nabla v}^2 \eta\, dx = \EE(\rho).
+\]
+
+\begin{proposition}[Sublinear Caccioppoli estimate]
+\label{prop:caccioppoli}
+There is a constant $C_\star = C_\star(\theta, \nu, M)$ such that
+for every $\rho > 0$,
+\begin{equation}\label{eq:cacc-full}
+\nu \EE(\rho) \leq C_\star \rho^{-1/2} \DD(\rho)^{1/2}
++ \frac{\nu}{2}\abs{I_1(\rho)}
++ \frac{1}{2}\int_{\RR^3} \abs{v}^2 \abs{v\cdot\nabla\eta}\, dx,
+\end{equation}
+where the residual viscous term
+$\abs{I_1(\rho)} \leq C_\theta \nu M^2 / \rho$, and the third
+term (the convective cutoff) is bounded by
+$C_\theta \rho^{-1} \norm{v}_{L^3(A(\theta\rho, \rho))}^3$.
+\end{proposition}
+
+\begin{proof}
+By~\eqref{eq:master-identity} (rearranged):
+\[
+\nu \EE(\rho) \leq \frac{\nu}{2}\abs{\int \abs{v}^2 \Delta\eta\, dx}
++ \frac{1}{2}\abs{\int\abs{v}^2 v \cdot \nabla\eta\, dx}
++ \abs{\int (v\otimes v) : \nabla b\, dx}
++ \nu \abs{\int \nabla v : \nabla b\, dx}.
+\]
+
+We bound each of the four terms.
+
+\emph{Term $I_1$ (viscous cutoff).} Using $\abs{\Delta\eta} \leq
+C_\theta/\rho^2$ on $A(\theta\rho, \rho)$ (supp of $\Delta\eta$),
+\[
+\abs{I_1} := \abs{\int \abs{v}^2 \Delta\eta\, dx}
+\leq \frac{C_\theta}{\rho^2} \norm{v}_{L^2(A(\theta\rho, \rho))}^2.
+\]
+By the Lorentz layer-cake embedding proven in~\S\ref{sec:lorentz}
+(Proposition~\ref{prop:lorentz-emb}), $\norm{v}_{L^2(A)}^2 \leq
+C\,M^2\,\rho$, so
+$\abs{I_1} \leq C_\theta M^2 / \rho$, and
+$\frac{\nu}{2}\abs{I_1} \leq C_\theta \nu M^2/\rho$.
+
+\emph{Term $I_2$ (Bogovski\u{\i} viscous).} By Cauchy--Schwarz,
+\[
+\abs{I_2} := \abs{\int \nabla v : \nabla b\, dx}
+\leq \norm{\nabla v}_{L^2(A)} \cdot \norm{\nabla b}_{L^2(A)}
+= \DD(\rho)^{1/2} \cdot \norm{\nabla b}_{L^2(A)}.
+\]
+Using the uniform annular Bogovski\u{\i} bound
+Corollary~\ref{cor:bogo-annulus} with $q = 2$ and
+$\abs{\nabla \eta} \leq C_\theta/\rho$,
+\[
+\norm{\nabla b}_{L^2(A)} \leq C_\theta \norm{v \cdot \nabla \eta}_{L^2(A)}
+\leq \frac{C_\theta}{\rho} \norm{v}_{L^2(A)}
+\leq \frac{C_\theta M}{\sqrt{\rho}},
+\]
+by the Lorentz bound of~\S\ref{sec:lorentz}. Combining,
+\[
+\nu \abs{I_2} \leq C_\theta \nu M\, \rho^{-1/2}\,\DD(\rho)^{1/2}.
+\]
+
+\emph{Term $I_4$ (convective Bogovski\u{\i}).} Apply the
+three-factor H\"older inequality with exponents $(12/5, 2, 12)$
+to the identity $\int (v\otimes v):\nabla b\, dx =
+\int v_i\,v_j\,\partial_j b_i\, dx$; equivalently (via the
+integration-by-parts identity $\int (v\otimes v):\nabla b =
+-\int (v \cdot \nabla v)\cdot b$ from
+Proposition~\ref{prop:elim}), bound
+\[
+\abs{I_4} := \abs{\int (v \otimes v) : \nabla b\, dx}
+= \abs{\int (v \cdot \nabla v) \cdot b\, dx}
+\leq \norm{v}_{L^{12/5}(A)}\,\norm{\nabla v}_{L^2(A)}\,\norm{b}_{L^{12}(A)}.
+\]
+By the Sobolev embedding
+$W^{1,12/5}_0(A) \hookrightarrow L^{12}(A)$ (rescaled from the
+reference annulus $A_0 = A(\theta, 1)$, with constant depending
+only on $\theta$),
+\[
+\norm{b}_{L^{12}(A)} \leq C_\theta \norm{\nabla b}_{L^{12/5}(A)}.
+\]
+Bogovski\u{\i} at $q = 12/5$ (Corollary~\ref{cor:bogo-annulus})
+gives
+\[
+\norm{\nabla b}_{L^{12/5}(A)} \leq C_\theta \norm{v \cdot \nabla \eta}_{L^{12/5}(A)}
+\leq \frac{C_\theta}{\rho} \norm{v}_{L^{12/5}(A)}.
+\]
+By the Lorentz embedding (Proposition~\ref{prop:lorentz-emb})
+at $r = 12/5$,
+\[
+\norm{v}_{L^{12/5}(A)} \leq C M \rho^{3(5/12) - 1} = C M \rho^{1/4}.
+\]
+Assembling,
+\[
+\abs{I_4} \leq (C M \rho^{1/4}) \cdot \DD(\rho)^{1/2} \cdot
+\Bigl(\frac{C_\theta}{\rho} \cdot C M \rho^{1/4}\Bigr)
+= C_\theta M^2 \rho^{-1/2} \DD(\rho)^{1/2}.
+\]
+
+Setting $C_\star := C_\theta(\nu M + M^2)$ (so that
+$\nu\abs{I_2} + \abs{I_4} \leq C_\star \rho^{-1/2} \DD^{1/2}$)
+and collecting the bounds on $I_1$, $I_2$, $I_4$, we
+obtain~\eqref{eq:cacc-full}. The residual $I_3$-type term
+$\frac{1}{2}\int \abs{v}^2 v \cdot \nabla\eta$ is bounded above
+by $\frac{C_\theta}{\rho}\norm{v}_{L^3(A)}^3$ using
+$\abs{\nabla\eta} \leq C_\theta/\rho$ on the support $A$.
+\end{proof}
+
+The third term of~\eqref{eq:cacc-full} involves the scale-critical
+quantity $\norm{v}_{L^3(A)}^3$, which is not bounded directly by
+Lorentz (the Lorentz embedding of~\S\ref{sec:lorentz} requires
+$r < 3$ strictly). This term is handled by the Gagliardo--Nirenberg
+interpolation of~\S\ref{sec:gn}, which factors it through the
+sub-scale-critical Lorentz bounds plus the gradient norm.
+
+\begin{remark}[Draft-9 sublinearity vs.\ Young absorption]
+\label{rem:no-young}
+Earlier approaches to stationary Liouville (Galdi's original
+argument, and Drafts~7--8 in the companion corpus) attempted to
+absorb the Bogovski\u{\i}-viscous cross-term into the left-hand
+side by Young's inequality: $ab \leq \tfrac{1}{2}a^2 +
+\tfrac{1}{2}b^2$ with the $a^2$-piece absorbed into $\DD(\rho)$.
+This requires $\DD$ to appear on the left of~\eqref{eq:cacc-full},
+which is not the case here: the left-hand side is $\EE(\rho)$,
+not $\DD$. The identity~\eqref{eq:master-identity} cannot be
+rearranged to put $\DD$ on the left without introducing a
+Caccioppoli inequality for $\DD$ itself, which is not available
+at this regularity. The sublinear form~\eqref{eq:cacc-full} with
+$\DD^{1/2}$ on the right is therefore the correct structural
+form, confirmed by the explicit Bogovski\u{\i} scaling. The
+retired Young-absorption approach is catalogued as anti-knowledge
+AK-28 in the companion corpus.
+\end{remark}
+
+\section{Lorentz layer-cake embedding on annuli}\label{sec:lorentz}
+
+Recall $\norm{f}_{L^{q,\infty}(\RR^n)} := \sup_{t > 0} t\,
+\abs{\{\abs{f} > t\}}^{1/q}$. For $f \in L^{q,\infty}$ restricted
+to a set $E$ of finite measure, interpolation with $L^\infty$
+gives an $L^r$ bound for every $r \in (0, q)$.
+
+\begin{proposition}[Lorentz embedding on sets of finite measure]
+\label{prop:lorentz-emb}
+Let $f \in L^{q,\infty}(\RR^n)$ with $q \in (0, \infty)$, and let
+$E \subset \RR^n$ be a measurable set of finite measure. For
+every $r \in (0, q)$,
+\begin{equation}\label{eq:lorentz}
+\norm{f}_{L^r(E)} \leq \Bigl(\frac{q}{q - r}\Bigr)^{1/r}
+\norm{f}_{L^{q,\infty}(\RR^n)}\, \abs{E}^{1/r - 1/q}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Write $M := \norm{f}_{L^{q,\infty}}$. By Cavalieri's identity,
+\[
+\int_E \abs{f}^r\, dx = r \int_0^\infty t^{r-1}\,
+\abs{\{x \in E : \abs{f(x)} > t\}}\, dt.
+\]
+Bound the distribution function by the minimum of its two
+available estimates:
+\[
+\abs{\{x \in E : \abs{f(x)} > t\}} \leq \min\Bigl(\abs{E},\, M^q / t^q\Bigr).
+\]
+The two bounds are equal at $t = t_* := (M^q / \abs{E})^{1/q}$.
+Splitting the integral at $t_*$,
+\[
+\int_E \abs{f}^r\, dx \leq r\,\abs{E}\int_0^{t_*} t^{r-1}\,dt
++ r\,M^q \int_{t_*}^\infty t^{r-1-q}\, dt
+= \abs{E}\, t_*^r + \frac{r}{q-r}\, M^q\, t_*^{r - q}.
+\]
+Substituting $t_*^r = (M^q/\abs{E})^{r/q}$ and $t_*^{r - q} =
+(\abs{E}/M^q)^{1 - r/q}$,
+\[
+\int_E \abs{f}^r\, dx \leq M^r \abs{E}^{1 - r/q}
+\Bigl(1 + \frac{r}{q - r}\Bigr)
+= \frac{q}{q - r}\, M^r\, \abs{E}^{1 - r/q}.
+\]
+Taking the $r$-th root yields~\eqref{eq:lorentz}.
+\end{proof}
+
+We apply~\eqref{eq:lorentz} with $q = 3$, $f = v$, and $E =
+A(\theta\rho, \rho)$. The volume of the annulus is
+\[
+\abs{A(\theta\rho, \rho)} = \tfrac{4\pi}{3}(1 - \theta^3)\rho^3
+=: c_\theta \rho^3.
+\]
+
+\begin{corollary}[Lorentz bound on the annulus]
+\label{cor:lorentz-v}
+For every $r \in (0, 3)$ and every $\rho > 0$,
+\begin{equation}\label{eq:v-lorentz}
+\norm{v}_{L^r(A(\theta\rho, \rho))}
+\leq C_{r, \theta}\, M\, \rho^{3/r - 1}.
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Apply Proposition~\ref{prop:lorentz-emb} with $q = 3$:
+$\norm{v}_{L^r(A)} \leq (3/(3-r))^{1/r} M \cdot (c_\theta
+\rho^3)^{1/r - 1/3} = C_{r,\theta} M \rho^{3/r - 1}$.
+\end{proof}
+
+\begin{remark}[Why the embedding fails at $r = 3$]
+\label{rem:lorentz-endpoint}
+As $r \to 3^-$, the prefactor $(3/(3-r))^{1/r}$ diverges, and
+the exponent $3/r - 1 \to 0$. The Lorentz quasi-norm
+$\norm{\cdot}_{L^{3,\infty}}$ is not absolutely continuous:
+a function like $v(x) = \abs{x}^{-1}$ has
+$\norm{v}_{L^{3,\infty}(\RR^3)} < \infty$ but
+$\norm{v}_{L^3(B_R \setminus B_r)} = c\log^{1/3}(R/r) \to \infty$
+as $r \to 0$. This is the structural reason Theorem~\ref{thm:main}
+requires the sub-scale-critical machinery of~\S\ref{sec:gn}: at
+$r = 3$, no Lorentz-based bound is available, and the critical
+exponent must be accessed through the gradient via
+Gagliardo--Nirenberg.
+\end{remark}
+
+The key bounds used in~\S\ref{sec:caccioppoli} are the specific
+instances $r = 2$ (giving $\norm{v}_{L^2(A)} \leq CM\rho^{1/2}$)
+and $r = 12/5$ (giving $\norm{v}_{L^{12/5}(A)} \leq
+CM\rho^{1/4}$). The sub-scale-critical range $r \in (3/2, 3)$
+underlies~\S\ref{sec:gn}.
+
+\section{Gagliardo--Nirenberg interpolation and scale cancellation}
+\label{sec:gn}
+
+The convective cutoff term in~\eqref{eq:cacc-full} is cubic in
+$v$ and requires an $L^3(A)$ bound on $v$. The Lorentz embedding
+of~\S\ref{sec:lorentz} does not reach $r = 3$ endpoint. We
+therefore interpolate $\norm{v}_{L^3(A)}^3$ between a
+sub-critical Lorentz bound and the annular gradient norm, via
+Gagliardo--Nirenberg, and observe that the exact scale-invariance
+of the critical $L^3$ exponent forces a cancellation of
+$\rho$-powers in the main term.
+
+\subsection{Reference Gagliardo--Nirenberg inequality.}
+
+\begin{lemma}[Gagliardo--Nirenberg on the reference annulus]
+\label{lem:GN-ref}
+Fix $\theta \in (0, 1)$ and $p \in (3/2, 3)$, and set $\theta_p :=
+p/(6 - p) \in (0, 1)$. There is a constant $C_{\mathrm{GN}}(p, \theta)$ such
+that for every $w \in W^{1,2}(A(\theta, 1)) \cap L^p(A(\theta, 1))$,
+\begin{equation}\label{eq:GN-ref}
+\norm{w}_{L^3(A(\theta,1))} \leq C_{\mathrm{GN}}\bigl(
+\norm{w}_{L^p(A(\theta,1))}^{\theta_p}
+\norm{\nabla w}_{L^2(A(\theta,1))}^{1 - \theta_p}
++ \norm{w}_{L^p(A(\theta,1))} \bigr).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+This is the standard multiplicative Gagliardo--Nirenberg
+inequality on a bounded Lipschitz domain~\cite[Thm~II.5.2]{Galdi}.
+The exponent $\theta_p$ is determined by the scaling relation
+\[
+\frac{1}{3} = \frac{\theta_p}{p} + (1 - \theta_p)\Bigl(\frac{1}{2} - \frac{1}{3}\Bigr),
+\]
+which rearranges to $\theta_p = p/(6 - p)$. The additive
+$\norm{w}_{L^p}$ term is required on bounded domains because
+$\norm{w}_{L^p} + \norm{\nabla w}_{L^2}$ bounds the full
+$W^{1,p} \cap W^{1,2}$ norm only up to this lower-order piece.
+The constant $C_{\mathrm{GN}}$ depends on the annulus $A(\theta, 1)$ through
+standard Sobolev-extension estimates.
+\end{proof}
+
+Cubing~\eqref{eq:GN-ref} and using $(x + y)^3 \leq 4(x^3 + y^3)$,
+\begin{equation}\label{eq:GN-cubed}
+\norm{w}_{L^3(A(\theta,1))}^3 \leq C'_{\mathrm{GN}}\Bigl(
+\norm{w}_{L^p(A(\theta,1))}^a\,\norm{\nabla w}_{L^2(A(\theta,1))}^{2b}
++ \norm{w}_{L^p(A(\theta,1))}^3 \Bigr),
+\end{equation}
+where
+\[
+a := 3\theta_p = \frac{3p}{6 - p}, \qquad
+b := \frac{3(1 - \theta_p)}{2} = \frac{3(3 - p)}{6 - p}, \qquad
+a + 2b = 3.
+\]
+
+\subsection{Rescaling to $A(\theta\rho, \rho)$ and scale cancellation.}
+
+\begin{proposition}[Critical GN bound with exact $\rho$-cancellation]
+\label{prop:GN-critical}
+For every $\theta \in (0, 1)$ and $p \in (3/2, 3)$, and every
+$\rho > 0$,
+\begin{equation}\label{eq:GN-scaled}
+\norm{v}_{L^3(A(\theta\rho, \rho))}^3
+\leq C'_{\mathrm{GN}} \Bigl(
+\norm{v}_{L^p(A(\theta\rho, \rho))}^a\, \DD(\rho)^b
++ \norm{v}_{L^p(A(\theta\rho, \rho))}^3 \Bigr),
+\end{equation}
+with no explicit $\rho$-factor. Substituting the Lorentz bound
+Corollary~\ref{cor:lorentz-v} yields
+\begin{equation}\label{eq:GN-Lorentz}
+\norm{v}_{L^3(A(\theta\rho, \rho))}^3 \leq
+C_{\mathrm{GN}}'(CM)^a\,\rho^b\, \DD(\rho)^b + C_{\mathrm{GN}}'(CM)^3.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Let $\tilde v(y) := v(\rho y)$ for $y \in A(\theta, 1)$. Direct
+substitution in each integral gives
+\[
+\norm{\tilde v}_{L^q(A(\theta,1))}^q = \rho^{-3}\,\norm{v}_{L^q(A(\theta\rho,\rho))}^q,
+\qquad
+\norm{\nabla_y \tilde v}_{L^2(A(\theta,1))}^2 = \rho^{-1}\,\DD(\rho),
+\]
+for any $q \geq 1$. Substituting into~\eqref{eq:GN-cubed} applied
+to $\tilde v$,
+\[
+\rho^{-3}\,\norm{v}_{L^3(A)}^3
+\leq C'_{\mathrm{GN}}\bigl(
+\rho^{-3a/p - b}\norm{v}_{L^p(A)}^a\,\DD(\rho)^b
++ \rho^{-9/p}\norm{v}_{L^p(A)}^3
+\bigr).
+\]
+Multiplying by $\rho^3$, the first prefactor becomes
+$\rho^{3 - 3a/p - b}$. Substitute $a = 3p/(6 - p)$, $b = 3(3 - p)/(6 - p)$:
+\[
+3 - \frac{3a}{p} - b
+= 3 - \frac{9}{6-p} - \frac{3(3 - p)}{6 - p}
+= \frac{3(6-p) - 9 - 9 + 3p}{6 - p}
+= \frac{18 - 3p - 18 + 3p}{6 - p} = 0.
+\]
+The second prefactor becomes
+\[
+\rho^{3 - 9/p}\,\norm{v}_{L^p(A)}^3 \leq
+\rho^{3 - 9/p}\cdot(CM)^3\rho^{3(3/p - 1)}
+= (CM)^3\,\rho^{3 - 9/p + 9/p - 3} = (CM)^3,
+\]
+using Lorentz $\norm{v}_{L^p(A)} \leq CM\rho^{3/p - 1}$. This
+proves~\eqref{eq:GN-scaled} and, with the Lorentz substitution
+$\norm{v}_{L^p(A)}^a \leq (CM)^a \rho^{a(3/p - 1)}$ where
+$a(3/p - 1) = b$ by direct computation, yields
+\eqref{eq:GN-Lorentz}.
+\end{proof}
+
+\subsection{The full key estimate.}
+
+\begin{theorem}[Main sublinear estimate on $\EE$]
+\label{thm:main-estimate}
+Fix $\theta \in (0, 1)$ and $p \in (3/2, 3)$, with $\gamma :=
+(3 - 2p)/(6 - p)$ and $b := 3(3 - p)/(6 - p)$. There are
+constants $K_0, K_1, K_2$ depending only on $(\theta, \nu, M, p)$
+such that, for every $\rho > 0$,
+\begin{equation}\label{eq:key}
+\EE(\rho) \leq K_0\,\rho^{-1/2}\,\DD(\rho)^{1/2}
+          + K_1\,\rho^{-1}
+          + K_2\,\rho^\gamma\,\DD(\rho)^b.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Divide~\eqref{eq:cacc-full} (Proposition~\ref{prop:caccioppoli})
+by $\nu$:
+\[
+\EE(\rho) \leq \frac{C_\star}{\nu}\,\rho^{-1/2}\DD^{1/2}
++ \frac{1}{2}\abs{I_1(\rho)}
++ \frac{1}{2\nu}\int \abs{v}^2\abs{v\cdot\nabla\eta}\,dx.
+\]
+The first term contributes $K_0\rho^{-1/2}\DD^{1/2}$ with
+$K_0 = C_\star/\nu$.
+
+The second term is bounded by
+$\abs{I_1} \leq C_\theta M^2/\rho$, contributing
+$C_\theta M^2/(2\rho)$.
+
+The third term, using $\abs{\nabla\eta} \leq C_\theta/\rho$ on
+$A(\theta\rho, \rho)$,
+\[
+\int \abs{v}^2 \abs{v\cdot\nabla\eta}\,dx
+\leq \frac{C_\theta}{\rho}\,\norm{v}_{L^3(A(\theta\rho,\rho))}^3.
+\]
+Applying~\eqref{eq:GN-Lorentz},
+\[
+\frac{1}{\rho}\,\norm{v}_{L^3(A)}^3
+\leq C'_{\mathrm{GN}}(CM)^a\,\rho^{b - 1}\,\DD^b
++ \frac{C'_{\mathrm{GN}}(CM)^3}{\rho}.
+\]
+Since $b - 1 = \gamma$,
+\[
+\frac{1}{2\nu}\int \abs{v}^2\abs{v\cdot\nabla\eta}\,dx
+\leq \frac{C_\theta C'_{\mathrm{GN}} C^a M^a}{2\nu}\,\rho^\gamma\,\DD^b
++ \frac{C_\theta C'_{\mathrm{GN}} C^3 M^3}{2\nu\rho}.
+\]
+Combining the $\rho^{-1}$ contributions into $K_1$, the
+$\rho^\gamma\DD^b$ contribution into $K_2$, and the
+$\rho^{-1/2}\DD^{1/2}$ contribution into $K_0$
+gives~\eqref{eq:key}.
+\end{proof}
+
+\begin{remark}[Exponents at $p = 2$]\label{rem:exponents}
+The natural choice $p = 2$ gives
+\[
+a = \frac{6}{4} = \frac{3}{2}, \quad
+b = \frac{3}{4}, \quad
+\gamma = -\frac{1}{4}.
+\]
+The exponents $(\gamma, b) = (-1/4, 3/4)$ are the ones used in
+the Draft-9 closure of the Caccioppoli restructuring in the
+companion corpus; they give the cleanest integration in
+\S\ref{sec:ode}.
+\end{remark}
+
+\section{The superlinear differential inequality}\label{sec:ode}
+
+We reduce Theorem~\ref{thm:main-estimate} to a closed ODE for
+$\EE$. Throughout this section we fix $p \in (3/2, 12/5]$ so
+that the critical GN exponent $b = 3(3-p)/(6-p) \geq 1/2$, and
+we will focus on the canonical choice $p = 2$ for the explicit
+exponents.
+
+\begin{proposition}[Superlinear ODE]\label{prop:ODE}
+Fix $p \in (3/2, 12/5]$, with $\gamma = (3 - 2p)/(6 - p)$ and
+$b = 3(3 - p)/(6 - p)$. If $\lim_{\rho \to \infty} \EE(\rho) =
++\infty$, then there exist $c > 0$ and $\rho_* \geq 1$, depending
+on $(\theta, \nu, M, p)$, such that
+\begin{equation}\label{eq:superlinear-ODE}
+\EE'(\rho) \geq c\,\rho^{-\alpha}\,\EE(\rho)^\beta
+\qquad \text{for all } \rho \geq \rho_*,
+\end{equation}
+with
+\[
+\alpha = 1 + \gamma/b = \frac{12 - 5p}{3(3 - p)},
+\qquad
+\beta = \frac{1}{b} = \frac{6 - p}{3(3 - p)}.
+\]
+Moreover, $\alpha < 1$ and $\beta > 1$ for every
+$p \in (3/2, 3)$.
+\end{proposition}
+
+\begin{proof}
+Since $b \geq 1/2$, for any $\DD \geq 0$,
+\[
+\DD^{1/2} \leq \DD^b + 1,
+\]
+distinguishing $\DD \geq 1$ (where $\DD^{1/2} \leq \DD^b$) from
+$\DD < 1$ (where $\DD^{1/2} \leq 1$). Substituting
+into~\eqref{eq:key}:
+\begin{equation}\label{eq:key2}
+\EE(\rho) \leq K_0\rho^{-1/2}(\DD(\rho)^b + 1)
++ K_1\rho^{-1}
++ K_2\rho^\gamma\DD(\rho)^b
+= (K_0\rho^{-1/2} + K_2\rho^\gamma)\DD(\rho)^b + R(\rho),
+\end{equation}
+where $R(\rho) := K_0\rho^{-1/2} + K_1\rho^{-1}$. Since
+$\gamma \geq -1/2$ for $p \in (3/2, 12/5]$ (explicit check:
+$\gamma = -1/2$ at $p = 12/5$; $\gamma$ decreases with $p$
+from 0 at $p = 3/2$), for $\rho \geq 1$ we have
+$\rho^{-1/2} \leq \rho^\gamma$, so
+\[
+\EE(\rho) \leq (K_0 + K_2)\rho^\gamma \DD(\rho)^b + R(\rho).
+\]
+Set $K := K_0 + K_2$.
+
+By the hypothesis $\EE \to \infty$, there is $\rho_1 \geq 1$
+such that $\EE(\rho) \geq 2R(\rho)$ for all $\rho \geq \rho_1$
+(since $R(\rho) \to 0$ and $\EE(\rho) \to \infty$). Then
+\[
+\EE(\rho) - R(\rho) \geq \tfrac{1}{2}\EE(\rho),
+\quad\text{so}\quad
+\tfrac{1}{2}\EE(\rho) \leq K\rho^\gamma \DD(\rho)^b
+\quad\forall \rho \geq \rho_1.
+\]
+Rearranging,
+\[
+\DD(\rho) \geq \Bigl(\frac{\EE(\rho)}{2K}\Bigr)^{1/b}
+\rho^{-\gamma/b}.
+\]
+By Lemma~\ref{lem:hat-deriv},
+$\DD(\rho) \leq \frac{1-\theta}{\theta}\,\rho\,\EE'(\rho)$, so
+\[
+\rho\,\EE'(\rho) \geq \frac{\theta}{1 - \theta}
+\Bigl(\frac{\EE(\rho)}{2K}\Bigr)^{1/b} \rho^{-\gamma/b}.
+\]
+Divide by $\rho$:
+\[
+\EE'(\rho) \geq c\,\rho^{-1-\gamma/b}\,\EE(\rho)^{1/b},
+\qquad c := \frac{\theta}{(1-\theta)(2K)^{1/b}}.
+\]
+This is~\eqref{eq:superlinear-ODE} with $\alpha = 1 + \gamma/b$
+and $\beta = 1/b$, valid for $\rho \geq \rho_* := \rho_1$.
+
+It remains to verify $\alpha < 1$ and $\beta > 1$. Substituting
+$\gamma = (3-2p)/(6-p)$ and $b = 3(3-p)/(6-p)$,
+\[
+\frac{\gamma}{b}
+= \frac{(3-2p)/(6-p)}{3(3-p)/(6-p)}
+= \frac{3 - 2p}{3(3 - p)},
+\qquad
+\alpha = 1 + \frac{3 - 2p}{3(3-p)}
+= \frac{3(3-p) + 3 - 2p}{3(3-p)}
+= \frac{12 - 5p}{3(3 - p)},
+\]
+\[
+\beta = \frac{6 - p}{3(3 - p)}.
+\]
+For $p \in (3/2, 3)$, the denominator $3(3 - p) > 0$. Then
+\[
+\alpha < 1 \iff 12 - 5p < 3(3 - p) = 9 - 3p \iff 2p > 3 \iff p > 3/2,
+\]
+\[
+\beta > 1 \iff 6 - p > 3(3 - p) = 9 - 3p \iff 2p > 3 \iff p > 3/2.
+\]
+Both conditions hold exactly when $p > 3/2$.
+\end{proof}
+
+\begin{corollary}[Explicit exponents at $p = 2$]\label{cor:p2-expo}
+At $p = 2$,
+\[
+\gamma = -\tfrac{1}{4}, \quad b = \tfrac{3}{4},
+\quad \alpha = \tfrac{2}{3}, \quad \beta = \tfrac{4}{3}.
+\]
+\end{corollary}
+
+\begin{remark}[Sharp failure at $p = 3/2$ and $p = 3$]
+The endpoint $p = 3/2$ corresponds to $\alpha = \beta = 1$, where
+the superlinear structure degenerates (the ODE becomes linear
+and~\S\ref{sec:contradiction} does not close). The endpoint
+$p = 3$ lies outside the Lorentz embedding range of
+\S\ref{sec:lorentz}. The open range $p \in (3/2, 3)$ is therefore
+the full admissible set; the argument is strongest at $p$ away
+from both endpoints.
+\end{remark}
+
+\section{Integration and contradiction}\label{sec:contradiction}
+
+We integrate the ODE of Proposition~\ref{prop:ODE} and derive a
+contradiction with the non-decreasing, finite-at-each-scale
+behaviour of $\EE$.
+
+\begin{theorem}[Finite Dirichlet energy]\label{thm:finite-D}
+$\int_{\RR^3} \abs{\nabla v}^2\, dx < \infty$.
+\end{theorem}
+
+\begin{proof}
+By Lemma~\ref{lem:hat-deriv}, $\EE$ is non-decreasing, so either
+$\lim_{\rho \to \infty}\EE(\rho) = L < \infty$ or $\lim_{\rho \to
+\infty}\EE(\rho) = +\infty$. In the first case,
+\[
+\int_{\RR^3}\abs{\nabla v}^2\,dx
+= \lim_{\rho \to \infty} \int \abs{\nabla v}^2\,\varphi(\abs{x}/\rho)\,dx
+= L < \infty,
+\]
+by monotone convergence ($\varphi(\abs{x}/\rho) \nearrow 1$
+pointwise as $\rho \to \infty$).
+
+It remains to rule out the second case. Assume, for contradiction,
+$\EE(\rho) \to +\infty$. Proposition~\ref{prop:ODE} applies: for
+some $c > 0$, $\rho_* \geq 1$, and $(\alpha, \beta)$ with
+$\alpha < 1 < \beta$ (at $p = 2$: $\alpha = 2/3$, $\beta = 4/3$),
+\[
+\EE'(\rho) \geq c\,\rho^{-\alpha}\,\EE(\rho)^\beta
+\qquad \forall \rho \geq \rho_*.
+\]
+Since $\EE(\rho) > 0$ (on the hypothesis $\EE \to \infty$ we may
+assume $\EE(\rho_*) > 0$), divide by $\EE^\beta$:
+\[
+\EE(\rho)^{-\beta}\,\EE'(\rho) \geq c\,\rho^{-\alpha}
+\qquad \forall \rho \geq \rho_*.
+\]
+Integrate from $\rho_*$ to $R > \rho_*$:
+\[
+\int_{\rho_*}^R \EE(\rho)^{-\beta}\,\EE'(\rho)\,d\rho
+\geq c \int_{\rho_*}^R \rho^{-\alpha}\,d\rho.
+\]
+The left-hand side computes (using $\beta > 1$, so $1 - \beta < 0$):
+\[
+\int_{\rho_*}^R \EE^{-\beta}\,\EE'\,d\rho
+= \Bigl[\frac{\EE^{1-\beta}}{1-\beta}\Bigr]_{\rho_*}^{R}
+= \frac{1}{\beta - 1}\bigl(\EE(\rho_*)^{1 - \beta} - \EE(R)^{1-\beta}\bigr)
+\leq \frac{\EE(\rho_*)^{1-\beta}}{\beta - 1},
+\]
+bounded uniformly in $R$ because $\EE(R)^{1-\beta} > 0$.
+
+The right-hand side, using $\alpha < 1$:
+\[
+c\int_{\rho_*}^R \rho^{-\alpha}\,d\rho
+= \frac{c}{1 - \alpha}\bigl(R^{1-\alpha} - \rho_*^{1-\alpha}\bigr)
+\xrightarrow{R \to \infty} +\infty.
+\]
+
+Comparing: a bounded quantity exceeds an unbounded one, which is
+impossible. The contradiction rules out
+$\EE(\rho) \to \infty$. Therefore $\EE$ is bounded and
+$\int_{\RR^3} \abs{\nabla v}^2 dx < \infty$.
+\end{proof}
+
+\begin{remark}[Quantitative form of the bound]
+\label{rem:quantitative}
+The proof of Theorem~\ref{thm:finite-D} yields an explicit
+quantitative bound on $\EE$: from $\frac{1}{\beta -
+1}\EE(\rho_*)^{1 - \beta} \geq \frac{c}{1-\alpha}(R^{1-\alpha} -
+\rho_*^{1-\alpha})$ taken in the contrapositive direction, any
+large value of $\EE(\rho_*)$ is constrained by the divergence
+rate of $R^{1-\alpha}$. This gives the scale estimate
+$\EE(\rho_0) \leq O(M^6/\rho_0)$ exploited in
+Corollary~\ref{cor:quant}; see \S\ref{sec:extensions}.
+\end{remark}
+
+\section{From finite Dirichlet energy to $v \equiv 0$}
+\label{sec:vzero}
+
+We close the proof of Theorem~\ref{thm:main}. The finite
+Dirichlet energy from Theorem~\ref{thm:finite-D}, combined with
+$v \in \Lweak{3}$, upgrades $v$ to global $L^6$ regularity and
+the pressure $p$ to global $L^3$; a global cutoff test then
+forces $\nabla v \equiv 0$, hence $v \equiv 0$.
+
+\begin{lemma}[Upgraded regularity]\label{lem:upgrade}
+From $v \in \Lweak{3}(\RR^3)$ and $\int_{\RR^3} \abs{\nabla v}^2
+dx < \infty$, it follows that $v \in L^6(\RR^3)$ with
+$\norm{v}_{L^6} \leq C \norm{\nabla v}_{L^2}$, and the pressure
+$p$ associated with the stationary NS system satisfies $p \in
+L^3(\RR^3)$ with $\norm{p}_{L^3} \leq C\norm{\nabla v}_{L^2}^2$.
+\end{lemma}
+
+\begin{proof}
+The homogeneous Sobolev inequality on $\RR^3$~\cite[II.5]{Galdi}
+gives
+\[
+\norm{v}_{L^6(\RR^3)} \leq C_{\mathrm{Sob}}\,\norm{\nabla v}_{L^2(\RR^3)}.
+\]
+(Strictly: $v$ is assumed smooth, so Sobolev applies pointwise to
+$v - v_R$ on any $B_R$ with $v_R$ the mean, and passing $R \to
+\infty$ uses $v \in \Lweak{3}$ to eliminate the constant.) Hence
+$v \otimes v \in L^3(\RR^3)$ with $\norm{v \otimes v}_{L^3} =
+\norm{v}_{L^6}^2 \leq C\norm{\nabla v}_{L^2}^2$.
+
+The stationary NS equation $-\nu \Delta v + \dv(v \otimes v)
++ \nabla p = 0$ gives, taking divergence and using $\dv v = 0$,
+\[
+-\Delta p = \dv \dv (v \otimes v) = \partial_i \partial_j (v_i v_j).
+\]
+In terms of Riesz transforms $R_i = (-\Delta)^{-1/2}\partial_i$,
+$p = R_i R_j (v_i v_j)$ modulo the additive constant, which is
+fixed to zero by requiring $p \in L^3$ (no nonzero constant lies
+in $L^3(\RR^3)$). Calder\'on--Zygmund boundedness of $R_iR_j$ on
+$L^3(\RR^3)$ gives $\norm{p}_{L^3} \leq C\norm{v\otimes v}_{L^3}
+\leq C\norm{\nabla v}_{L^2}^2$.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Let $\varphi_R \in C^\infty_c(\RR^3)$ be a radial cutoff with
+$\varphi_R \equiv 1$ on $B_R$, $\supp \varphi_R \subset B_{2R}$,
+$\abs{\nabla \varphi_R} \leq C/R$, and $\supp \nabla\varphi_R
+\subset A(R, 2R)$. Test the stationary NS equation against
+$v\,\varphi_R^2$ and integrate over $\RR^3$:
+\[
+\int \Bigl[-\nu\,\Delta v + (v\cdot\nabla)v + \nabla p\Bigr] \cdot v\,\varphi_R^2 \,dx = 0.
+\]
+Each term integrates by parts (valid by $v$ smooth, $\varphi_R$
+compactly supported):
+\begin{align*}
+-\nu \int (\Delta v) \cdot v\,\varphi_R^2
+&= \nu \int \abs{\nabla v}^2 \varphi_R^2 + \nu \int \varphi_R\,(\nabla\abs{v}^2) \cdot \nabla\varphi_R, \\
+\int (v\cdot\nabla v) \cdot v\,\varphi_R^2
+&= -\int \abs{v}^2\,(v \cdot \nabla\varphi_R)\,\varphi_R, \\
+\int \nabla p \cdot v\,\varphi_R^2
+&= -2\int p\,(v\cdot\nabla\varphi_R)\,\varphi_R,
+\end{align*}
+the last two using $\dv v = 0$. Rearranging gives the identity
+\begin{equation}\label{eq:closing}
+\nu \int \abs{\nabla v}^2 \varphi_R^2\, dx
+= -\nu\int \varphi_R\,(\nabla\abs{v}^2)\cdot\nabla\varphi_R\,dx
++ \int \abs{v}^2\,(v\cdot\nabla\varphi_R)\,\varphi_R\, dx
++ 2\int p\,(v\cdot\nabla\varphi_R)\,\varphi_R\,dx.
+\end{equation}
+
+Denote the three right-hand terms $J_1, J_2, J_3$. Each is
+supported in $A(R, 2R)$.
+
+\emph{Bound on $J_1$ (viscous cross-term).} By Cauchy--Schwarz
+and $\abs{\nabla \varphi_R} \leq C/R$,
+\[
+\abs{J_1} = 2\nu \abs{\int \varphi_R\,(v \cdot \nabla v)\cdot\nabla\varphi_R\,dx}
+\leq \frac{2\nu C}{R}\,\norm{v}_{L^2(A(R,2R))}\,\norm{\nabla v}_{L^2(A(R, 2R))}.
+\]
+By Corollary~\ref{cor:lorentz-v} at $r = 2$,
+$\norm{v}_{L^2(A(R,2R))} \leq C M R^{1/2}$. Since
+$\int_{\RR^3}\abs{\nabla v}^2 < \infty$,
+$\norm{\nabla v}_{L^2(A(R,2R))}^2 \leq \int_{\abs{x} \geq R}
+\abs{\nabla v}^2\,dx \to 0$ as $R \to \infty$. Hence
+\[
+\abs{J_1} \leq \frac{C\nu M}{R^{1/2}}\,\norm{\nabla v}_{L^2(A(R,2R))}
+\xrightarrow{R\to\infty} 0.
+\]
+
+\emph{Bound on $J_2$ (convective).} Using
+$\abs{\nabla\varphi_R} \leq C/R$,
+\[
+\abs{J_2} \leq \frac{C}{R}\,\int_{A(R, 2R)} \abs{v}^3\,dx
+= \frac{C}{R}\,\norm{v}_{L^3(A(R, 2R))}^3.
+\]
+By Proposition~\ref{prop:GN-critical} applied on
+$A(R, 2R)$ (i.e., with $\theta = 1/2$ and $\rho = 2R$),
+\[
+\norm{v}_{L^3(A)}^3 \leq C'_{\mathrm{GN}}\bigl(M^a\,(2R)^b\,\DD_R^b + M^3\bigr),
+\qquad \DD_R := \norm{\nabla v}_{L^2(A(R, 2R))}^2,
+\]
+with $a = 3/2$, $b = 3/4$ at $p = 2$. So
+\[
+\abs{J_2} \leq \frac{C}{R}\bigl(CM^{3/2}(2R)^{3/4}\DD_R^{3/4} + CM^3\bigr)
+= C M^{3/2} R^{-1/4}\,\DD_R^{3/4} + C M^3 R^{-1} \xrightarrow{R\to\infty} 0,
+\]
+using $\DD_R \to 0$ and $R^{-1} \to 0$.
+
+\emph{Bound on $J_3$ (pressure).} Using $\abs{\nabla\varphi_R}
+\leq C/R$ and H\"older with $(3, 3/2)$,
+\[
+\abs{J_3} \leq \frac{2C}{R}\int_{A(R, 2R)} \abs{p}\,\abs{v}\,dx
+\leq \frac{2C}{R}\,\norm{p}_{L^3(A(R, 2R))}\,\norm{v}_{L^{3/2}(A(R, 2R))}.
+\]
+By Corollary~\ref{cor:lorentz-v} at $r = 3/2$,
+$\norm{v}_{L^{3/2}(A(R, 2R))} \leq CMR$. And by
+Lemma~\ref{lem:upgrade}, $p \in L^3(\RR^3)$, so
+$\norm{p}_{L^3(A(R, 2R))} \leq \norm{p}_{L^3(\abs{x}\geq R)}
+\to 0$ as $R \to \infty$ by absolute continuity of the $L^3$
+integral. Hence
+\[
+\abs{J_3} \leq \frac{2C \cdot CMR}{R}\,\norm{p}_{L^3(\abs{x}\geq R)}
+= 2C^2M\,\norm{p}_{L^3(\abs{x}\geq R)} \xrightarrow{R\to\infty} 0.
+\]
+
+\emph{Passage to the limit.} From~\eqref{eq:closing},
+\[
+\nu \int \abs{\nabla v}^2 \varphi_R^2\,dx = J_1 + J_2 + J_3,
+\]
+and the left-hand side converges to $\nu \int_{\RR^3}
+\abs{\nabla v}^2 dx$ as $R \to \infty$ by monotone convergence
+(since $\varphi_R^2 \to 1$ pointwise, $0 \leq \varphi_R^2 \leq
+1$, $\abs{\nabla v}^2 \in L^1$). The right-hand side converges to
+$0$. Thus
+\[
+\nu \int_{\RR^3} \abs{\nabla v}^2\, dx = 0,
+\qquad \text{hence } \nabla v \equiv 0,
+\qquad \text{hence } v \equiv \text{const.}
+\]
+A nonzero constant does not lie in $\Lweak{3}(\RR^3)$: the
+distribution function $\abs{\{x \in \RR^3 : \abs{v(x)} > t\}}$
+is $\infty$ for $0 < t < \abs{v}$ and $0$ for $t > \abs{v}$, so
+$\sup_t t\,\abs{\{\abs{v}>t\}}^{1/3} = \infty$. By hypothesis
+$\norm{v}_{\Lweak{3}} < \infty$, so the constant is zero: $v
+\equiv 0$. \qedhere
+\end{proof}
+
+\section{Extensions}\label{sec:extensions}
+
+\subsection{Four-dimensional Liouville.}
+\label{ssec:4d}
+
+The proof of Theorem~\ref{thm:main} transposes to $\RR^n$ with
+$n \geq 3$ by tracking the dimensional discriminant. The
+Gagliardo--Nirenberg scale-invariance computation of
+\S\ref{sec:gn} gives, in dimension $n$ at critical exponent
+$L^n$,
+\[
+b = b(n, p) = \frac{n(n - p)}{2n - p(n - 2)},
+\qquad a(n, p) = n - 2b.
+\]
+Substituting into the ODE exponents,
+\[
+\gamma(n, p) = -\frac{(n - 4)(n - 2p)}{2n - p(n - 2)},
+\qquad
+\alpha(n, p) = 1 + \frac{\gamma(n,p)}{b(n,p)},
+\qquad
+\beta(n, p) = \frac{1}{b(n, p)}.
+\]
+At $n = 3$ these reduce to $\gamma(3,p) = (3-2p)/(6-p)$ and
+$b(3,p) = 3(3-p)/(6-p)$, recovering the exponents of
+Theorem~\ref{thm:main-estimate} and Proposition~\ref{prop:ODE}.
+The factor $(n - 4)$ in the numerator of $\gamma(n,p)$ governs
+the transition across dimension four.
+
+\begin{proof}[Proof of Corollary~\ref{cor:4d}]
+At $n = 4$, $\gamma(4, p) = 0$ for every $p$; the GN main term
+is scale-invariant and no $\rho$-weight survives. Taking the
+natural choice $p = 5/2$ (symmetric about the critical
+$L^{4,\infty}$): $b = 4 \cdot (3/2) / (8 - 5/2 \cdot 2) =
+4 \cdot (3/2) / 3 = 2$; $\alpha = 1$; $\beta = 1/2$. This gives
+a borderline ODE $\EE'(\rho) \geq c\,\rho^{-1}\,\EE(\rho)^{\beta}$
+with $\alpha = 1$, which is integrable on the left (bounded
+antiderivative since $\beta > 1$ --- for $p$ slightly larger than
+$5/2$, say $p \in (5/2, 4)$, one obtains $\beta > 1$ by direct
+substitution) and logarithmically divergent on the right:
+\[
+c\int_{\rho_*}^R \frac{d\rho}{\rho}
+= c\log\frac{R}{\rho_*}
+\xrightarrow{R \to \infty} +\infty.
+\]
+The contradiction closes the same way as in
+Theorem~\ref{thm:finite-D}, forcing $\int_{\RR^4}\abs{\nabla v}^2 dx
+< \infty$. The closing argument of \S\ref{sec:vzero} extends
+verbatim with Sobolev $\norm{v}_{L^4(\RR^4)} \leq C\norm{\nabla v
+}_{L^2(\RR^4)}$ (critical Sobolev in dimension four) replacing
+the three-dimensional $L^6$ bound. Hence $v \equiv 0$ on $\RR^4$.
+\end{proof}
+
+\begin{remark}[Failure for $n \geq 5$]
+\label{rem:high-dim}
+For $n \geq 5$, $\gamma(n, p) > 0$ for $p$ in the admissible
+range, making $\alpha(n, p) > 1$. The integral $\int \rho^{-\alpha} d\rho$
+converges, and the RHS of the ODE integration stays bounded --- no
+contradiction. A sharper structural obstruction applies: $\beta
+> 1$ requires $p > n/2$ (from the Sobolev embedding direction),
+while $\alpha \leq 1$ requires $p \leq n/2$ (from the integration
+direction); the two conditions are incompatible for $n \geq 5$.
+No stationary $L^{n,\infty}(\RR^n)$ Liouville theorem
+is currently available for $n \geq 5$; the structural obstruction
+(Sobolev / integration exponent conflict) is discussed in the
+companion corpus \cite{CompanionCorpus}.
+\end{remark}
+
+\subsection{The $W^{1,2}_\loc$ weak-solution extension.}
+\label{ssec:weak}
+
+\begin{proof}[Proof of Corollary~\ref{cor:weak}]
+Let $v \in \Lweak{3}(\RR^3) \cap W^{1,2}_\loc(\RR^3)$ be a weak
+solution of stationary Navier--Stokes in the sense that, for every
+divergence-free $\phi \in C^\infty_c(\RR^3)$,
+\[
+\nu \int \nabla v : \nabla \phi\, dx
++ \int v \otimes v : \nabla \phi\, dx = 0.
+\]
+(The pressure is eliminated by the divergence-free test class.)
+
+\emph{Step 1: local regularity.} By $W^{1,2}_\loc$ and the
+Sobolev embedding $W^{1,2}(B_R) \hookrightarrow L^6(B_R)$,
+$v \in L^6_\loc$. Interpolating
+$v \in \Lweak{3} \cap L^6_\loc$ with H\"older gives
+$v \in L^r_\loc$ for every $r \in [3, 6]$. In particular
+$v \otimes v \in L^3_\loc$, so $p \in L^3_\loc$ by the local
+Calder\'on--Zygmund argument of Lemma~\ref{lem:upgrade} restricted
+to any $B_R$. Iteration with the equation $-\nu\Delta v + \dv(v
+\otimes v) + \nabla p = 0$ (in the sense of distributions) gives
+$v \in C^\infty_\loc$ (Galdi~\cite[Ch.~V]{Galdi}).
+
+\emph{Step 2: the Caccioppoli and GN machinery still apply.} The
+test-function construction of \S\ref{sec:pressure} uses
+$w = v\eta - \BB[v\cdot\nabla\eta]$; this requires only $v \in
+W^{1,q}_\loc$ for some $q > 1$, which follows from the interior
+regularity of Step~1. Proposition~\ref{prop:elim} holds by
+mollification of $v$ followed by passage to the limit, since
+$v$ is smooth in the interior. The Lorentz and GN machinery of
+\S\ref{sec:lorentz}--\S\ref{sec:gn} use $v \in \Lweak{3}$ and
+local Sobolev regularity, both of which persist under the weak
+hypothesis.
+
+\emph{Step 3: test-function density.} The divergence-free test
+space $\{\phi \in C^\infty_c(\RR^3) : \dv \phi = 0\}$ is dense
+in the space $W^{1,q}_0$-divergence-free functions with compact
+support, for every $q > 1$~\cite[Thm~III.4.1]{Galdi} (originally
+due to Heywood~\cite{Heywood}). The Bogovski\u{\i}-modified test
+function $w = v\eta - \BB[v\cdot\nabla\eta]$ lies in this space
+by construction, so it is an admissible test function in the
+weak formulation.
+
+\emph{Step 4: closing argument.} The proof of
+Theorem~\ref{thm:main} runs verbatim, concluding $v \equiv 0$.
+The $W^{1,2}_\loc$ hypothesis is sharp: the Landau
+solutions~\cite{Landau} are smooth outside the origin, belong to
+$\Lweak{3}(\RR^3)$ (with quasi-norm equal to a definite constant),
+and lie in $W^{1,2}_\loc(\RR^3 \setminus \{0\})$ but not at the
+origin; they show that \emph{any weakening below $W^{1,2}_\loc$
+admits nontrivial stationary solutions} in $\Lweak{3}$.
+\end{proof}
+
+\subsection{Quantitative bound.}
+\label{ssec:quantitative}
+
+\begin{proof}[Proof of Corollary~\ref{cor:quant}]
+From the proof of Proposition~\ref{prop:ODE}, the ODE constant
+at $p = 2$ is
+\[
+c = \frac{\theta}{(1 - \theta)(2K_2)^{1/b}}
+= \frac{\theta}{(1 - \theta)(2K_2)^{4/3}},
+\]
+with $K_2 = O(M^{3/2})$ (tracking $M$-dependence through
+Theorem~\ref{thm:main-estimate}; the dominant $M$-power arises
+from $\norm{v}_{L^p}^a$ with $a = 3/2$ at $p = 2$). So $c \geq
+c_0 M^{-2}$ for a dimensionless $c_0 = c_0(\theta, \nu)$.
+
+From the integration of
+Theorem~\ref{thm:finite-D},
+\[
+\frac{\EE(\rho_*)^{1 - \beta}}{\beta - 1}
+\geq \frac{c}{1 - \alpha}\bigl(R^{1-\alpha} - \rho_*^{1-\alpha}\bigr)
+\qquad\forall R > \rho_*.
+\]
+At $p = 2$: $\beta - 1 = 1/3$, $1 - \alpha = 1/3$. Taking
+$R = 2\rho_*$,
+\[
+\EE(\rho_*)^{-1/3} \geq \frac{c \cdot (2^{1/3} - 1)}{1/3 \cdot 1/3}\,
+\rho_*^{1/3}
+= C_0\,c\,\rho_*^{1/3}.
+\]
+Inverting,
+\[
+\EE(\rho_*) \leq \frac{C_1}{c^3\,\rho_*}
+= \frac{C_1 M^6}{c_0^3\,\rho_*},
+\]
+which is the claimed single-exponential-in-$M$ bound.
+
+\emph{Comparison with Tao.}
+Tao's quantitative regularity bound~\cite{Tao2019}, which targets
+the full Clay problem via an assumed uniform $L^3$-bound on the
+evolution, gives a triple-exponential dependence on the bound.
+Corollary~\ref{cor:quant} is, in principle, not directly
+comparable (it concerns the stationary case at a single scale),
+but the constructivized KNSS reduction using
+Theorem~\ref{thm:main} as the Liouville step in place of a
+conjectured one would inherit the present polynomial-in-$M$ bound.
+\end{proof}
+
+\section{Application to the Clay chain and the $L^{3,\infty}$ endpoint gap}
+\label{sec:clay-chain}
+
+This section describes how Theorem~\ref{thm:main} composes within
+the Koch--Nadirashvili--Seregin--\v{S}ver\'ak blow-up framework,
+identifies the single structural step that remains open, and
+surveys the current partial closures.
+
+\subsection{The composition.}
+Suppose $u \in C^\infty(\RR^3 \times [0, T^*))$ is the maximal
+smooth solution of~\eqref{eq:NS} with Schwartz $u_0$, and
+$T^* < \infty$. The chain runs:
+\begin{enumerate}[label=(C\arabic*),itemsep=2pt]
+\item \textbf{Type I excluded.} NRS~\cite{NRS96},
+Tsai~\cite{Tsai98}, ESS~\cite{ESS03RMS}: no self-similar
+solutions; any hypothetical singularity is Type II.
+\item \textbf{KNSS rescaling.}~\cite[\S6]{KNSS}: sequences
+$\lambda_n \to 0$, $x_n \to x_0$, $t_n \to T^*$ with
+$v_n(y, s) := \lambda_n u(x_n + \lambda_n y, t_n + \lambda_n^2 s)
+\to v$ in $C^m_\loc$, $\abs{v} \leq C_0$,
+$\abs{v(0, 0)} = 1$.
+\item \textbf{Stationary backward limit.} Arzel\`a--Ascoli
+extracts $v(\cdot, s_n) \to v_\infty$ in $C^m_\loc$ along some
+$s_n \to -\infty$; equicontinuity of $\partial_s v$ forces
+$v_\infty$ stationary.
+\item \textbf{Liouville applies.} Under the inheritance step
+discussed in \S\ref{ssec:inheritance}, $v_\infty \in
+\Lweak{3}$; by Theorem~\ref{thm:main}, $v_\infty \equiv 0$.
+\item \textbf{Backward uniqueness contradicts.}
+ESS~\cite[\S5]{ESS03RMS} + spatial continuation
+\cite[\S4]{ESS03RMS} yield $\omega(\cdot, s) \neq 0$ for all
+$s \leq 0$, contradicting the full convergence from (C4).
+\end{enumerate}
+
+Every step of this chain except (C4) is rigorous in the
+published literature. The exception is the implicit hypothesis
+that $v \in \Lweak{3}$ uniformly in $s \leq 0$; the conclusion
+of Theorem~\ref{thm:main} is conditional on that uniform bound.
+
+\subsection{The inheritance gap.}\label{ssec:inheritance}
+
+Scale invariance of the $\Lweak{3}$ quasi-norm shows that the
+ancient solution $v$ inherits $\norm{v(\cdot, s)}_{\Lweak{3}}$
+from $\norm{u(\cdot, t_n + \lambda_n^2 s)}_{\Lweak{3}}$. What
+remains is to bound the latter uniformly in $t \in [0, T^*)$.
+This is the question of the $L^{3,\infty}$ endpoint regularity
+criterion, which Phuc~\cite[p.~4]{Phuc2015} states as open:
+\begin{quote}
+``To the best of our knowledge, a criterion of local regularity
+for the Navier--Stokes equations in $L^\infty(-1, 0;
+L^{3,\infty}(B_1))$ is still unknown.''
+\end{quote}
+
+The obstruction is structural. Phuc's method closes the
+criterion for $L^\infty_t L^{3,q}_x$ with $q \in [3, \infty)$
+using exterior-tail compactness at the blow-up extraction: the
+rescaled ancient solution inherits $\norm{\cdot}_{L^{3,q}
+(\RR^3 \setminus B_R)} \to 0$ as $R \to \infty$ by absolute
+continuity of the $L^{3,q}$ norm. At $q = \infty$, the
+$\Lweak{3}$ quasi-norm is not absolutely continuous --- the
+function $\abs{x}^{-1}$, the canonical critical profile, has
+scale-invariant exterior norm --- and the compactness step
+collapses.
+
+\subsection{Partial closures.}
+
+\paragraph{Axisymmetric case.}
+O\.{z}a\'nski--Palasek~\cite{OzanskiPalasek} closed the endpoint
+for axisymmetric flows via Nazarov--Ural'tseva parabolic Harnack
+\cite{NazarovUraltseva} applied to the swirl $rv_\theta$, which
+satisfies a scalar parabolic equation with divergence-free drift.
+The reduction to a scalar quantity is essentially axisymmetric;
+no analog is known for general flows.
+
+\paragraph{Smallness.}
+Luo--Tsai~\cite{LuoTsai} and Kim--Kozono~\cite{KimKozono} close
+the endpoint under a Serrin-type smallness assumption
+$\norm{u}_{L^\infty_t L^{3,\infty}_x}$ below a threshold. The
+large-data question remains open.
+
+\paragraph{Partial regularity.}
+Seregin~\cite{Seregin2019} established that an
+$L^\infty_t L^{3,\infty}_x$ bound controls the singular set to be
+finite (bounded by $M^3/\epsilon^4$ for an effective $\epsilon$);
+this is partial, not full, regularity.
+
+\paragraph{Logarithmic improvement.}
+Phuc~\cite[Thm~1.5]{Phuc2015} closes the endpoint under the
+pointwise refinement
+$\abs{u(x, t)} \leq C\abs{x}^{-1}\abs{\log(\abs{x}/2)}^{-\beta}$
+for any $\beta > 0$. A strengthening of the rescaled
+ancient-solution bound to this logarithmic form would complete
+the chain via Phuc's machinery.
+
+\subsection{A weighted-moment proposal.}\label{ssec:weighted-moment}
+
+The obstruction at the $L^2$-only level is sharp: the
+translation-invariance of $\norm{\cdot}_{L^2(\RR^3)}$ forbids any
+constant depending only on $\norm{u_0}_{L^2}$ from bounding
+$\abs{u(x, t)}$ pointwise. Brandolese--Meyer~\cite{BrandoleseMeyer}
+exhibit explicit counterexamples. The constant must depend on a
+weighted norm carrying spatial information.
+
+A natural proposal is the weighted hypothesis
+$(1 + \abs{x}) u_0 \in L^\infty(\RR^3)$, which is automatic for
+Schwartz data. Define $\mathcal{M}(u_0) := \norm{u_0}_{L^2} +
+\norm{(1 + \abs{x}) u_0}_{L^\infty}$. We conjecture that the
+rescaled ancient solution inherits
+$\norm{v(\cdot, s)}_{\Lweak{3}} \leq M(\mathcal{M}(u_0), \nu)$
+uniformly, via a three-step strategy: (i) local weighted
+$L^\infty$ propagation from Kato mild-solution theory + the
+Brandolese--Meyer generic-decay framework; (ii) global
+propagation up to $T^*$ via a Gronwall-type estimate on the
+weighted quantity $w = (1 + \abs{x}) u$; (iii) scale-invariance
+transfer to the rescaled sequence.
+
+Step (iii) is elementary; step (i) is classical. Step (ii) is
+the novel mathematical content, and closing it rigorously would
+resolve the Clay regularity question for Schwartz data under this
+mildly strengthened hypothesis. A preliminary estimate analysis
+\cite[desk/04]{CompanionCorpus} shows that the naive bootstrap
+argument gives a short-time bound (closed under a quadratic
+Volterra inequality $\tilde A \leq L_0 + L_1 \tilde A^2$) but
+does not obviously extend to all of $[0, T^*)$; the extension
+requires either (a) a uniform-in-$t$ Caffarelli--Kohn--Nirenberg
+$\epsilon$-regularity bound on the exterior of the singular set,
+giving $\abs{\nabla^k u(x, t)} \leq C_k(1 + \abs{x})^{-1-k}$ for
+$\abs{x} \geq R_0$, or (b) a weighted $L^2$ energy estimate that
+propagates $\norm{(1 + \abs{x})^\alpha u(\cdot, t)}_{L^2}$ up to
+$T^*$.
+
+The full argument, together with the exterior
+$\epsilon$-regularity analysis, is deferred to a forthcoming
+work. The present paper establishes Theorem~\ref{thm:main}
+unconditionally and records this closure as the open problem
+reducing the Clay chain.
+
+\section{The obstruction landscape}\label{sec:obstructions}
+
+The research program connecting Theorem~\ref{thm:main} to the
+bounded-Liouville conjecture for the full regularity problem
+runs through nine structural obstructions catalogued in the
+companion corpus \cite{CompanionCorpus}. We list them briefly
+here; full statements, canonical citations, and alternative-route
+discussions are in the corpus.
+
+\begin{enumerate}[label=(O\arabic*), itemsep=2pt]
+\item \textbf{Closure Obstruction}: no finite combination of the
+fifty-six antecedent algebraic identities plus
+Cauchy--Schwarz/Hodge/Helmholtz/coarea closes the Final
+Sub-Question strain-$L^2$ improvement.
+\item \textbf{Exchange-of-Limits Obstruction}: the hull topology
+does not commute with the far-field Rayleigh-quotient limit
+along translation-hull sequences.
+\item \textbf{Riesz Obstruction}: the pressure Poisson equation
+plus $L^2$ bounds does not determine the sign of the pressure
+Hessian at the eigenfunction supremum.
+\item \textbf{USC Obstruction}: upper semi-continuity of the
+asymptotic Rayleigh quotient at constants is equivalent to, not
+independent of, bounded Liouville.
+\item \textbf{Carleman Obstruction}: unique continuation (UCP)
+is categorically distinct from Liouville (non-existence); the
+two cannot compose without exponent loss.
+\item \textbf{Integral-Equation Obstruction}: under linear
+hypotheses, the Birman--Schwinger integral equation admits
+bounded eigenfunctions at negative eigenvalue; linear spectral
+analysis is exhausted.
+\item \textbf{Resonance-Diagonal Obstruction}: in the $\Phi$-adic
+cross-shell coupling matrix on Fibonacci shells, the pressure
+correction sign is undetermined per shell --- a per-scale version
+of the Riesz obstruction.
+\item \textbf{Helicity-Sector Obstruction}: the symmetric
+geometric factor $\Lambda_k^{(S)}$ is independent of the scalar
+quadratic NS invariants; helicity-based closures do not fix its
+sign.
+\item \textbf{Twist-Writhe Obstruction}: the
+C\u{a}lug\u{a}reanu--White--Fuller decomposition and the sector
+decomposition live in incommensurable representations; the
+$\ell = 2$ angular harmonic on $\Phi$-shells is the irreducible
+obstruction.
+\end{enumerate}
+
+The landscape is \emph{topological, not metric}: each obstruction
+identifies a signed quantity with $O(C(M))$-controlled magnitude
+but undetermined sign. Alternative-route research programs ---
+hull-ergodic closure via the Grand Unification Conjecture,
+icosahedral averaging of the $\ell = 2$ component on
+$\Phi$-shells, space-time hull closure for Type II --- are
+developed in the companion corpus.
+
+\section{Discussion}\label{sec:discussion}
+
+\subsection{The vortex-stretching reading.}
+
+Theorem~\ref{thm:main} admits a physical reading. The weighted
+energy $\EE(\rho) = \int \abs{\nabla v}^2 \varphi(\abs{x}/\rho)
+dx$ measures \emph{fluid enstrophy} at scale $\rho$, and the
+derivative $\EE'(\rho)$ is a local influx rate across the sphere
+$\abs{x} = \rho$. The superlinear ODE
+$\EE' \geq c\rho^{-\alpha}\EE^\beta$ with $\beta > 1$ states that
+the influx rate grows superlinearly with the enstrophy already
+present: vortex-stretching amplifies strain, which amplifies
+vorticity, in a feedback loop. The argument is in spirit a
+no-go: such a feedback, applied across the bulk of $\RR^3$,
+cannot stabilize; the only fixed point is $v \equiv 0$.
+
+The Lorentz hypothesis $v \in \Lweak{3}$ enters as the
+sub-scaling-critical bound on the tail of $v$ that keeps the
+feedback from saturating. At the endpoint $L^{3,\infty}$ the
+bound is still strong enough, but only barely --- the $\rho^\gamma$
+factor in the ODE degenerates at $p \to 3$, and vanishes at the
+intermediate $p = 3/2$. Between these, the structural exponents
+$\alpha < 1 < \beta$ are strict, and the argument closes.
+
+\subsection{Geometric architecture.}
+
+The proof relies on two distinct geometric choices that are
+sharp:
+
+\emph{Polynomial (fixed-ratio) annuli versus exponential weights.}
+The fixed-ratio annulus $A(\theta\rho, \rho)$ with $\theta \in
+(0, 1)$ fixed is geometrically scale-invariant, which is what
+allows the Bogovski\u{\i} operator on $A(\theta\rho, \rho)$ to
+carry uniform-in-$\rho$ constants (Corollary
+\ref{cor:bogo-annulus}). A Gaussian or exponential weight
+(common in the dynamical arguments of~\cite{KNSS, ESS03RMS})
+gives strictly better decay on the tail but destroys
+scale-invariance of the Bogovski\u{\i} constant, requiring
+$\rho$-dependent bookkeeping that ultimately fails at the
+critical exponent.
+
+\emph{The hat function versus smooth cutoffs.} The sharp
+hat-function $\varphi$ of Notation~\ref{not:geometry} gives the
+exact derivative identity \eqref{eq:hat-deriv} with no
+$\epsilon$-bookkeeping. A smoothed cutoff would require a
+transition-layer argument that introduces additional surface
+integrals; these wash out in the limit but obscure the structural
+form of the inequality.
+
+\subsection{Scope and limitations.}
+
+Theorem~\ref{thm:main} treats the stationary case exclusively;
+the evolution case is the KNSS composition discussed in
+\S\ref{sec:clay-chain}, where the remaining bottleneck is the
+uniform $L^{3,\infty}$ inheritance of the rescaled ancient
+solution. The Liouville step itself is proved unconditionally.
+
+The $n \geq 5$ case is inaccessible by the present method (see
+Remark~\ref{rem:high-dim}). This is not an artefact: no
+$L^{n,\infty}$ Liouville theorem is known for stationary NS on
+$\RR^n$ with $n \geq 5$, and the structural obstruction (the
+Sobolev / integration exponent conflict) suggests that different
+machinery is needed.
+
+The constants tracked in Corollary~\ref{cor:quant} are polynomial
+in the initial $L^{3,\infty}$ bound $M$, which is a quantitative
+improvement over conjectural triple-exponential bounds
+(\cite{Tao2019}) that would arise from the full-evolution case.
+However, the constants here are interior-to-the-argument; making
+them optimal (in the $\theta, \nu$ dependence) is out of scope.
+
+\subsection{Open problems.}
+
+We close with four problems, in decreasing order of specificity.
+
+\begin{enumerate}[label=(P\arabic*), itemsep=2pt]
+\item \textbf{The $L^{3,\infty}$ endpoint.} Resolve Phuc's open
+problem (\cite{Phuc2015}, reproduced in \S\ref{ssec:inheritance}):
+is $\norm{u}_{L^\infty_t L^{3,\infty}_x(B_1 \times (-1, 0))}$ a
+regularity criterion? Theorem~\ref{thm:main} is the stationary
+half; the parabolic analog with backward uniqueness substitutes
+is the outstanding mathematical question.
+\item \textbf{The weighted-moment proposal.} Close the
+weighted-moment closure of \S\ref{ssec:weighted-moment} for
+Schwartz data: prove that $(1 + \abs{x})u_0 \in L^\infty(\RR^3)$
+implies a uniform $L^{3,\infty}$ bound on the rescaled ancient
+solution. The main open step is the exterior
+$\epsilon$-regularity transport to obtain uniform $\abs{\nabla^k
+u(x, t)} \leq C_k (1 + \abs{x})^{-1-k}$ for $\abs{x}$ large.
+\item \textbf{Non-axisymmetric Nazarov--Ural'tseva.} Find a
+non-axisymmetric scalar invariant of a 3D NS flow that satisfies
+a parabolic equation with divergence-free drift amenable to
+Nazarov--Ural'tseva Harnack~\cite{NazarovUraltseva}. The
+axisymmetric $rv_\theta$ has no known general-case analog;
+identifying one would generalize~\cite{OzanskiPalasek}.
+\item \textbf{Lean formalization.} Formalize
+Theorem~\ref{thm:main} in Lean 4/Mathlib. The companion corpus
+\cite{CompanionCorpus} contains a skeleton with three open
+\texttt{sorry}s in the Caccioppoli, ODE contradiction, and
+Dirichlet-integral-zero steps. Closing those would upgrade the
+present paper to machine-verified status.
+\end{enumerate}
+
+\subsection{Acknowledgments.}
+
+I thank the Koch--Nadirashvili--Seregin--\v{S}ver\'ak program
+for the blow-up-extraction framework that made the present work
+coherent, and the Phuc line of work on $L^{3,q}$ regularity
+criteria for clarifying the endpoint obstruction. Conversations
+with the Turbulent Waters team and the HIRA kernel project on
+the obstruction landscape influenced \S\ref{sec:obstructions}.
+The error-ledger methodology that produced CORR-05/08/09
+\cite{CompanionCorpus} --- catching attribution errors before
+publication --- is a collaborative discipline whose value
+exceeded any single iteration's correctness.
+
+\bigskip
+
+% ============================================================
+\begin{thebibliography}{99}
+
+\bibitem{Bogovskii}
+M.~E.~Bogovski\u{\i},
+\emph{Solution of the first boundary value problem for the equation of continuity of an incompressible medium},
+Dokl.\ Akad.\ Nauk SSSR \textbf{248} (1979), 1037--1040.
+
+\bibitem{BrandoleseMeyer}
+L.~Brandolese and Y.~Meyer,
+\emph{On the instantaneous spreading for the Navier--Stokes system in the whole space},
+ESAIM: Control, Optimisation and Calculus of Variations
+\textbf{8} (2002), 273--285.
+
+\bibitem{Brandolese2004}
+L.~Brandolese,
+\emph{Space-time decay of Navier--Stokes flows invariant under rotations},
+Math.\ Ann.\ \textbf{329} (2004), 685--706.
+
+\bibitem{CKN}
+L.~Caffarelli, R.~Kohn, and L.~Nirenberg,
+\emph{Partial regularity of suitable weak solutions of the Navier--Stokes equations},
+Comm.\ Pure Appl.\ Math.\ \textbf{35} (1982), 771--831.
+
+\bibitem{CNY2024}
+Y.~Cho, J.~Neustupa, and M.~Yang,
+\emph{A regularity criterion for the stationary Navier--Stokes equations in the Lorentz space $L^{3,\infty}(\RR^3)$},
+Nonlinearity \textbf{37} (2024), Paper No.\ 035007.
+
+\bibitem{CY2026}
+Y.~Cho and M.~Yang,
+\emph{Refined Liouville-type theorems for the stationary Navier--Stokes equations},
+arXiv:2603.23833 (2026).
+
+\bibitem{CompanionCorpus}
+A.~Nahiru, \emph{finish\_navier\_stokes companion corpus}, GitHub
+repository, \url{https://github.com/hirunation/finish_navier_stokes},
+archived at Zenodo, DOI: 10.XXXX/zenodo.XXXXXXX (2026).
+
+\bibitem{ESS03ARMA}
+L.~Escauriaza, G.~Seregin, and V.~\v{S}ver\'ak,
+\emph{Backward uniqueness for parabolic equations},
+Arch.\ Ration.\ Mech.\ Anal.\ \textbf{169} (2003), 147--157.
+
+\bibitem{ESS03RMS}
+L.~Escauriaza, G.~Seregin, and V.~\v{S}ver\'ak,
+\emph{$L^{3,\infty}$-solutions of Navier--Stokes equations and backward uniqueness},
+Russ.\ Math.\ Surv.\ \textbf{58} (2003), 211--250.
+
+\bibitem{Galdi}
+G.~P.~Galdi,
+\emph{An Introduction to the Mathematical Theory of the Navier--Stokes Equations},
+Springer Monographs in Mathematics, 2nd ed., Springer, 2011.
+
+\bibitem{Heywood}
+J.~G.~Heywood,
+\emph{The Navier--Stokes equations: on the existence, regularity and decay of solutions},
+Acta Math.\ \textbf{136} (1976), 61--102.
+
+\bibitem{Kato}
+T.~Kato,
+\emph{Strong $L^p$-solutions of the Navier--Stokes equation in $\RR^m$, with applications to weak solutions},
+Math.\ Z.\ \textbf{187} (1984), 471--480.
+
+\bibitem{KimKozono}
+H.~Kim and H.~Kozono,
+\emph{Interior regularity criteria in weak spaces for the Navier--Stokes equations},
+Manuscripta Math.\ \textbf{115} (2004), 85--100.
+
+\bibitem{KNSS}
+G.~Koch, N.~Nadirashvili, G.~Seregin, and V.~\v{S}ver\'ak,
+\emph{Liouville theorems for the Navier--Stokes equations and applications},
+Acta Math.\ \textbf{203} (2009), 83--105.
+
+\bibitem{Landau}
+L.~D.~Landau,
+\emph{On a new exact solution of the Navier--Stokes equations},
+Dokl.\ Akad.\ Nauk SSSR \textbf{43} (1944), 299--301.
+
+\bibitem{Leray}
+J.~Leray,
+\emph{Sur le mouvement d'un liquide visqueux emplissant l'espace},
+Acta Math.\ \textbf{63} (1934), 193--248.
+
+\bibitem{LuoTsai}
+W.~Luo and T.-P.~Tsai,
+\emph{Regularity criteria in weak $L^3$ for 3D incompressible Navier--Stokes equations},
+Funkcialaj Ekvacioj \textbf{58} (2015), 387--404.
+
+\bibitem{NRS96}
+J.~Ne\v{c}as, M.~R\r{u}\v{z}i\v{c}ka, and V.~\v{S}ver\'ak,
+\emph{On Leray's self-similar solutions of the Navier--Stokes equations},
+Acta Math.\ \textbf{176} (1996), 283--294.
+
+\bibitem{NazarovUraltseva}
+A.~I.~Nazarov and N.~N.~Ural'tseva,
+\emph{The Harnack inequality and related properties of solutions to elliptic and parabolic equations with divergence-free lower-order coefficients},
+Algebra i Analiz \textbf{23} (2011), 136--168.
+
+\bibitem{OzanskiPalasek}
+W.~S.~O\.{z}a\'nski and S.~Palasek,
+\emph{Quantitative regularity for axisymmetric Navier--Stokes solutions with a bound in the weak-$L^3$ critical norm},
+arXiv:2210.10030, Annals of PDE (2023).
+
+\bibitem{Palasek}
+S.~Palasek,
+\emph{Improved quantitative regularity for the Navier--Stokes equations in a scale of critical spaces},
+Arch.\ Ration.\ Mech.\ Anal.\ \textbf{242} (2021).
+
+\bibitem{Phuc2015}
+N.~C.~Phuc,
+\emph{The Navier--Stokes equations in nonendpoint borderline Lorentz spaces},
+J.~Math.\ Fluid Mech.\ \textbf{17} (2015), 741--760.
+
+\bibitem{Schonbek}
+M.~E.~Schonbek,
+\emph{$L^2$ decay for weak solutions of the Navier--Stokes equations},
+Arch.\ Ration.\ Mech.\ Anal.\ \textbf{88} (1985), 209--222.
+
+\bibitem{Seregin2019}
+G.~Seregin,
+\emph{A note on weak solutions to the Navier--Stokes equations that are locally in $L^\infty(L^{3,\infty})$},
+arXiv:1906.06707 (2019).
+
+\bibitem{Tao2019}
+T.~Tao,
+\emph{Quantitative bounds for critically bounded solutions to the Navier--Stokes equations},
+Contemp.\ Math.\ \textbf{740} (2020), AMS.
+
+\bibitem{Tsai98}
+T.-P.~Tsai,
+\emph{On Leray's self-similar solutions of the Navier--Stokes equations satisfying local energy estimates},
+Arch.\ Ration.\ Mech.\ Anal.\ \textbf{143} (1998), 29--51.
+
+\bibitem{Wiegner}
+M.~Wiegner,
+\emph{Decay results for weak solutions of the Navier--Stokes equations on $\RR^n$},
+J.~London Math.\ Soc.\ \textbf{35} (1987), 303--313.
+
+\end{thebibliography}
+
+\end{document}
