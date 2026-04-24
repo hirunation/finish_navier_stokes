@@ -1,5 +1,6 @@
 import NS.Basic
 import NS.PDE
+import NS.HatFunction
 import NS.INS_01_L3inf_Liouville
 
 /-!
@@ -17,6 +18,9 @@ Module index:
 - `NS.PDE` — partialD, vectorLaplacian, advection,
   scalarGradient, SatisfiesStationaryNSWithPressure,
   SatisfiesStationaryNS.
+- `NS.HatFunction` — piecewise-linear hat `hat θ t` of
+  Notation 2.1, with the elementary properties (support,
+  non-negativity, value on each piece, bound ≤ 1).
 - `NS.INS_01_L3inf_Liouville` — Theorem 1.1 of the paper
   (currently `sorry`-bodied).
 -/
