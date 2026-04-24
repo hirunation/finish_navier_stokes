@@ -49,6 +49,37 @@ noncomputable def gradNormSq (v : R3 → R3) (x : R3) : ℝ :=
     norm. -/
 def annulus (a b : ℝ) : Set R3 := { x : R3 | a < enorm x ∧ enorm x < b }
 
+/-- On the annulus `A(a, b)`, the inner radius `a` is a lower
+    bound for the Euclidean norm. -/
+lemma le_enorm_of_mem_annulus {a b : ℝ} {x : R3} (hx : x ∈ annulus a b) :
+    a ≤ enorm x :=
+  le_of_lt hx.1
+
+/-- On the annulus `A(a, b)`, the outer radius `b` is an upper
+    bound for the Euclidean norm. -/
+lemma enorm_le_of_mem_annulus {a b : ℝ} {x : R3} (hx : x ∈ annulus a b) :
+    enorm x ≤ b :=
+  le_of_lt hx.2
+
+/-- `gradNormSq` is a sum of squares, hence non-negative. -/
+lemma gradNormSq_nonneg (v : R3 → R3) (x : R3) : 0 ≤ gradNormSq v x := by
+  unfold gradNormSq
+  positivity
+
+/-- Pointwise: on the annulus, the integrand of the gradient-weighted
+    integral in `weightedEnergy_deriv` dominates `θ · ρ · gradNormSq`.
+    This is the key step in deriving `annularGradSq_lb`. -/
+lemma pointwise_bound_on_annulus
+    {θ ρ : ℝ} {V : SmoothDivFreeField} {x : R3}
+    (hx : x ∈ annulus (θ * ρ) ρ) :
+    θ * ρ * gradNormSq V.v x ≤ gradNormSq V.v x * enorm x := by
+  have h1 : θ * ρ ≤ enorm x := le_enorm_of_mem_annulus hx
+  have h2 : 0 ≤ gradNormSq V.v x := gradNormSq_nonneg V.v x
+  calc θ * ρ * gradNormSq V.v x
+      = gradNormSq V.v x * (θ * ρ) := by ring
+    _ ≤ gradNormSq V.v x * enorm x :=
+        mul_le_mul_of_nonneg_left h1 h2
+
 /-- Hat-weighted energy at scale `ρ`:
     `∫ |∇v(x)|² · hat θ (|x|ₑ/ρ) dx`. -/
 noncomputable def weightedEnergy (θ : ℝ) (V : SmoothDivFreeField) (ρ : ℝ) : ℝ :=
@@ -86,12 +117,29 @@ theorem annularGradSq_lb
 /-- **Lemma 2.2, equation (2.3).**  `D(ρ) ≤ ((1-θ)/θ) · ρ · E'(ρ)`.
     This is the form invoked throughout Sections 5-8 of the paper
     to convert ODE bounds on `E` into gradient-integral bounds on
-    the annulus. -/
+    the annulus.
+
+    Proved from `annularGradSq_lb` by multiplying both sides by
+    `(1 - θ) * ρ / θ > 0`. -/
 theorem D_le_rho_deriv_E
     {θ : ℝ} (hθ0 : 0 < θ) (hθ1 : θ < 1)
     (V : SmoothDivFreeField) {ρ : ℝ} (hρ : 0 < ρ) :
     annularGradSq θ V ρ
       ≤ ((1 - θ) / θ) * ρ * deriv (weightedEnergy θ V) ρ := by
-  sorry
+  have h1θ : 0 < 1 - θ := by linarith
+  have hθne : θ ≠ 0 := ne_of_gt hθ0
+  have h1θne : (1 - θ) ≠ 0 := ne_of_gt h1θ
+  have hρne : ρ ≠ 0 := ne_of_gt hρ
+  have hscale : 0 ≤ (1 - θ) * ρ / θ :=
+    le_of_lt (div_pos (mul_pos h1θ hρ) hθ0)
+  have hlb := annularGradSq_lb hθ0 hθ1 V hρ
+  have key : annularGradSq θ V ρ
+      = ((1 - θ) * ρ / θ) * ((θ / ((1 - θ) * ρ)) * annularGradSq θ V ρ) := by
+    field_simp
+  calc annularGradSq θ V ρ
+      = ((1 - θ) * ρ / θ) * ((θ / ((1 - θ) * ρ)) * annularGradSq θ V ρ) := key
+    _ ≤ ((1 - θ) * ρ / θ) * deriv (weightedEnergy θ V) ρ :=
+        mul_le_mul_of_nonneg_left hlb hscale
+    _ = ((1 - θ) / θ) * ρ * deriv (weightedEnergy θ V) ρ := by ring
 
 end NS
