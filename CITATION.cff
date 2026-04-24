@@ -8,18 +8,21 @@ authors:
     email: aironahiru@gmail.com
 url: "https://github.com/hirunation/finish_navier_stokes"
 repository-code: "https://github.com/hirunation/finish_navier_stokes"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.19720003"
+    description: "Concept DOI (resolves to the latest version)"
 abstract: >-
   A provenance-tracked knowledge graph over the 3D Navier–Stokes
   regularity program, together with the accompanying research paper
   "A Liouville theorem for stationary Navier–Stokes in L^{3,∞}(R^3),
   and the endpoint gap in the Clay regularity chain." The corpus
-  contains 111 DAG-closed entries across nine categories (central
+  contains 103 DAG-closed entries across nine categories (central
   insights, supporting lemmas, definitions, obstruction theorems,
   classical axioms, retired anti-knowledge, attribution corrections,
-  master proof chains, and cross-cutting narrative threads), the
-  Lean 4 formalization pointer, four desk-level attack analyses,
-  and literature reviews for each of the nine canonical obstructions
-  (MPC-1..MPC-5, Lateral) identified in the Turbulent Waters canon.
+  master proof chains, and cross-cutting narrative threads), desk-
+  level attack analyses for the L^{3,∞} inheritance gap, and a Lean 4
+  skeleton for mechanization of the main theorem.
 license: CC-BY-4.0
 version: "0.1.0"
 date-released: "2026-04-23"
@@ -39,5 +42,5 @@ preferred-citation:
     - family-names: Nahiru
       given-names: Airo
   year: 2026
-  url: "https://zenodo.org/record/XXXXXXX"
-  doi: "10.XXXX/zenodo.XXXXXXX"
+  url: "https://doi.org/10.5281/zenodo.19720003"
+  doi: "10.5281/zenodo.19720003"

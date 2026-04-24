@@ -4,7 +4,7 @@
 $L^{3,\infty}(\mathbb{R}^3)$, and the endpoint gap in the Clay
 regularity chain.**
 
-[![Zenodo DOI](https://img.shields.io/badge/Zenodo-DOI%20forthcoming-blue)](https://zenodo.org/)
+[![DOI](https://zenodo.org/badge/1219516242.svg)](https://doi.org/10.5281/zenodo.19720003)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC--BY--4.0-lightgrey.svg)](LICENSE)
 
 **Author.** Airo Nahiru — <aironahiru@gmail.com>.
@@ -40,7 +40,7 @@ If you use the paper or corpus, please cite:
 > Nahiru, A. (2026). *A Liouville theorem for stationary
 > Navier–Stokes in $L^{3,\infty}(\mathbb{R}^3)$, and the
 > endpoint gap in the Clay regularity chain.* Zenodo.
-> DOI: 10.XXXX/zenodo.XXXXXXX
+> DOI: [10.5281/zenodo.19720003](https://doi.org/10.5281/zenodo.19720003)
 
 Machine-readable metadata in `CITATION.cff`.
 
