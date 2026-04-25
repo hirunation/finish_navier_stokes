@@ -79,4 +79,53 @@ lemma hat_le_one (h1 : θ < 1) (t : ℝ) : hat θ t ≤ 1 := by
 
 end Basic
 
+/-!
+## Differentiability on each piece
+
+The hat function is differentiable separately on each open piece
+of its piecewise definition. The boundary points `t = θ` and `t = 1`
+are excluded (the function is continuous there but the derivative
+jumps); for differentiation-under-the-integral applications they
+form a measure-zero set so this is sufficient.
+
+These three lemmas together give pointwise `HasDerivAt` everywhere
+on `ℝ \ {θ, 1}`, which is what `weightedEnergy_deriv` needs once
+the chain rule on `t = |x|/ρ` is composed.
+-/
+
+section Deriv
+
+variable {θ t : ℝ}
+
+/-- On the plateau `t < θ`, `hat θ` has derivative `0`. -/
+lemma hat_hasDerivAt_below (h : t < θ) : HasDerivAt (hat θ) 0 t := by
+  apply (hasDerivAt_const t (1 : ℝ)).congr_of_eventuallyEq
+  filter_upwards [Iio_mem_nhds h] with s hs
+  exact hat_of_lt_theta hs
+
+/-- On the linear transition layer `θ < t < 1`, `hat θ` has
+    derivative `-1 / (1 - θ)`. -/
+lemma hat_hasDerivAt_open (h_lo : θ < t) (h_hi : t < 1) :
+    HasDerivAt (hat θ) (-1 / (1 - θ)) t := by
+  -- The linear extension `s ↦ (1 - s) / (1 - θ)` agrees with `hat θ`
+  -- on the open interval `(θ, 1)`; derive there and transport.
+  have h_const : HasDerivAt (fun _ : ℝ => (1 : ℝ)) 0 t := hasDerivAt_const t 1
+  have h_id : HasDerivAt (id : ℝ → ℝ) 1 t := hasDerivAt_id t
+  have h_sub : HasDerivAt (fun s : ℝ => 1 - s) (0 - 1) t := h_const.sub h_id
+  have h_lin : HasDerivAt (fun s : ℝ => (1 - s) / (1 - θ)) ((0 - 1) / (1 - θ)) t :=
+    h_sub.div_const (1 - θ)
+  have h_simp : (0 - 1) / (1 - θ) = -1 / (1 - θ) := by ring
+  rw [h_simp] at h_lin
+  apply h_lin.congr_of_eventuallyEq
+  filter_upwards [Ioo_mem_nhds h_lo h_hi] with s hs
+  exact hat_of_mem_annulus (le_of_lt hs.1) hs.2
+
+/-- On the exterior `1 < t`, `hat θ` has derivative `0`. -/
+lemma hat_hasDerivAt_above (hθ1 : θ < 1) (h : 1 < t) : HasDerivAt (hat θ) 0 t := by
+  apply (hasDerivAt_const t (0 : ℝ)).congr_of_eventuallyEq
+  filter_upwards [Ioi_mem_nhds h] with s hs
+  exact hat_of_ge_one hθ1 (le_of_lt hs)
+
+end Deriv
+
 end NS
