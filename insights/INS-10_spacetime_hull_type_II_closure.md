@@ -3,7 +3,10 @@ id: INS-10
 title: Space-time hull / Type II closure (Ancient Extension)
 category: INS
 status: conjectured
-confidence: 0.70
+confidence: 0.30
+confidence_history:
+  - { date: "2026-04-17", value: 0.70, rationale: "initial estimate as parabolic extension of INS-07 Translation Hull Theorem" }
+  - { date: "2026-04-24", value: 0.30, rationale: "recalibrated per desk/09_ins10_ancient_extension.md. INS-10 is corpus-only (not in Turbulent Waters canon), structurally weaker than INS-03 (Step 4 of its proof literally cites LEM-06 as a hypothesis), and inherits OBS-02 (exchange-of-limits) from the parabolic analogue of the stationary case." }
 session_uuid: cross-session
 author: Airo Nahiru
 date: 2026-04-17

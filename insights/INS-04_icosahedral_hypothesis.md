@@ -3,7 +3,10 @@ id: INS-04
 title: Icosahedral Hypothesis — ℓ=2 resolution on Fibonacci φ-shells
 category: INS
 status: conjectured
-confidence: 0.65
+confidence: 0.35
+confidence_history:
+  - { date: "2026-04-17", value: 0.65, rationale: "initial estimate motivated by GUNS Cycle 1 numerics r(ℓ=4) = 0.0466 vs r(ℓ=1) = 0.7386" }
+  - { date: "2026-04-24", value: 0.35, rationale: "recalibrated per desk/07_icosahedral_deep_dive.md. Clean part (V_{ℓ=2}|_I = 1 + 4 with 4-d killed by I-averaging) is real and provable; residual 1-d trivial component on Fibonacci shells has no PDE mechanism forcing it to vanish. Strongest reading of conjecture becomes circular." }
 session_uuid: cross-session
 author: Airo Nahiru
 date: 2026-04-17

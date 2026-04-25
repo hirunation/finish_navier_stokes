@@ -3,7 +3,10 @@ id: MPC-5
 title: MPC-5 — Helicity flux + twist-writhe (to ℓ=2 irreducible)
 category: MPC
 status: conjectured
-confidence: 0.80
+confidence: 0.10
+confidence_history:
+  - { date: "2026-04-17", value: 0.80, rationale: "initial estimate as canon's preferred closure mechanism for the resonance-diagonal obstruction" }
+  - { date: "2026-04-24", value: 0.10, rationale: "recalibrated per desk/08_mpc5_helicity_flux.md. Canon's OWN Eighth Obstruction Theorem (MPC-5 link 5.45) and Ninth Obstruction Theorem (link 5.70) prove that scalar helicity is dimensionally insufficient: it carries one signed dof per shell, the pressure-correction obstruction has two (Λ_k^{++} and Λ_k^{+-}). Even bivector twist-writhe decomposition cannot resolve the parity-representation mismatch. Canon's own diagnostic establishes structural impossibility." }
 session_uuid: cross-session
 author: Airo Nahiru
 date: 2026-04-17

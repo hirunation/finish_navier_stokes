@@ -3,7 +3,10 @@ id: INS-03
 title: Grand Unification Conjecture — unique ergodicity of translation hull
 category: INS
 status: conjectured
-confidence: 0.75
+confidence: 0.30
+confidence_history:
+  - { date: "2026-04-17", value: 0.75, rationale: "initial canon-synthesis estimate" }
+  - { date: "2026-04-24", value: 0.30, rationale: "recalibrated after diagnostic sweep (desk/05, desk/07, desk/08, desk/09, desk/10). INS-03 closes via one of INS-04 / MPC-5 / INS-10; all three blocked at residual 0.10-0.40 by diagnostic." }
 session_uuid: cross-session
 author: Airo Nahiru
 date: 2026-04-17
@@ -17,6 +20,9 @@ cross_citations:
   - label: MPC-1 §45
     ref: turbulent_waters/canon/MASTER_PROOF_CHAIN_1.md §45
     note: Layer-2 reduction — unique ergodicity closes both bounded-Liouville and hull-ergodic layers simultaneously.
+  - label: desk/10 convergence synthesis
+    ref: desk/10_convergence.md
+    note: Diagnostic finds that INS-03's three sub-routes (INS-04, MPC-5, INS-10) all hit the same wall (signed-quantity-undetermined-sign at ℓ=2 on Fibonacci shells); see desk/05+07+08+09 for each route's specific block.
 verification:
   method: canon-synthesis
   rounds: n/a
