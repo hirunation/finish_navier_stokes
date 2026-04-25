@@ -3,6 +3,7 @@ import NS.HatFunction
 import NS.PDE
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Mathlib.MeasureTheory.Integral.Bochner.Set
+import Mathlib.MeasureTheory.Function.LocallyIntegrable
 
 /-!
 # NS.Energy — weighted energy, annulus, and Lemma 2.2
@@ -185,21 +186,66 @@ theorem annularGradSq_lb_of_integrable
     (h_int_f.const_mul (θ * ρ)) h_int_g (measurableSet_annulus _ _)
     (fun x hx => pointwise_bound_on_annulus hx)
 
-/-- **Lemma 2.2, first inequality.** `E'(ρ) ≥ (θ / ((1-θ)ρ)) · D(ρ)`.
+/-- The Pi sup norm is bounded above by the Euclidean norm on
+    `R3 = Fin 3 → ℝ`: for every `i`, `(x i)² ≤ ∑ⱼ (x j)²`, so
+    `|x i| ≤ √(∑ⱼ (x j)²) = enorm x`; taking the max over `i`
+    yields `‖x‖ ≤ enorm x`. -/
+lemma pi_norm_le_enorm (x : R3) : ‖x‖ ≤ enorm x := by
+  rw [pi_norm_le_iff_of_nonneg (enorm_nonneg x)]
+  intro i
+  show ‖x i‖ ≤ enorm x
+  rw [Real.norm_eq_abs, ← Real.sqrt_sq_eq_abs]
+  unfold enorm
+  apply Real.sqrt_le_sqrt
+  exact Finset.single_le_sum (f := fun j : Fin 3 => (x j) ^ 2)
+    (fun _ _ => sq_nonneg _) (Finset.mem_univ i)
 
-    The unconditional form is reached when integrability of
-    `gradNormSq V.v` (and its product with `enorm`) on the
-    annulus is established as an automatic consequence of
-    smoothness + boundedness — deferred to a separate session.
-    The current `sorry` body delegates to
-    `annularGradSq_lb_of_integrable` modulo those integrability
-    hypotheses. -/
+/-- A continuous function on `R3` is integrable on every annulus.
+    The annulus is bounded in `enorm`, hence in the Pi sup norm
+    (`pi_norm_le_enorm`), so it sits inside the Pi-norm closed
+    ball of radius `b`, which is compact in `R3` (a finite-
+    dimensional real vector space, hence a `ProperSpace`). A
+    continuous function is integrable on any compact set
+    (`ContinuousOn.integrableOn_compact`); restricting via
+    `IntegrableOn.mono_set` finishes. -/
+lemma integrableOn_annulus_of_continuous {f : R3 → ℝ}
+    (hf : Continuous f) (a b : ℝ) :
+    IntegrableOn f (annulus a b) := by
+  by_cases hb : 0 < b
+  · -- `b > 0`: embed annulus in the Pi-norm closed ball.
+    have h_subset : annulus a b ⊆ Metric.closedBall (0 : R3) b := fun x hx => by
+      rw [Metric.mem_closedBall, dist_zero_right]
+      exact le_of_lt (lt_of_le_of_lt (pi_norm_le_enorm x) hx.2)
+    have h_compact : IsCompact (Metric.closedBall (0 : R3) b) :=
+      isCompact_closedBall _ _
+    exact (hf.continuousOn.integrableOn_compact h_compact).mono_set h_subset
+  · -- `b ≤ 0` ⟹ `enorm x < b` is vacuous since `enorm x ≥ 0` ⟹ annulus empty
+    have hb' : b ≤ 0 := not_lt.mp hb
+    have h_empty : annulus a b = ∅ := by
+      ext x
+      refine ⟨fun hx => ?_, False.elim⟩
+      have hx_nn : 0 ≤ enorm x := enorm_nonneg x
+      linarith [hx.2]
+    rw [h_empty]
+    exact integrableOn_empty
+
+/-- **Lemma 2.2, first inequality (unconditional form).**
+    `E'(ρ) ≥ (θ / ((1-θ)ρ)) · D(ρ)`.
+
+    Discharges the two integrability hypotheses of
+    `annularGradSq_lb_of_integrable` via
+    `integrableOn_annulus_of_continuous` (continuous functions
+    on R3 are integrable on bounded annuli, since the annulus
+    sits inside a compact Pi-norm closed ball). -/
 theorem annularGradSq_lb
     {θ : ℝ} (hθ0 : 0 < θ) (hθ1 : θ < 1)
     (V : SmoothDivFreeField) {ρ : ℝ} (hρ : 0 < ρ) :
     (θ / ((1 - θ) * ρ)) * annularGradSq θ V ρ
-      ≤ deriv (weightedEnergy θ V) ρ := by
-  sorry
+      ≤ deriv (weightedEnergy θ V) ρ :=
+  annularGradSq_lb_of_integrable hθ0 hθ1 V hρ
+    (integrableOn_annulus_of_continuous (continuous_gradNormSq V) (θ * ρ) ρ)
+    (integrableOn_annulus_of_continuous
+      ((continuous_gradNormSq V).mul continuous_enorm) (θ * ρ) ρ)
 
 /-- **Lemma 2.2, equation (2.3).**  `D(ρ) ≤ ((1-θ)/θ) · ρ · E'(ρ)`.
     This is the form invoked throughout Sections 5-8 of the paper
