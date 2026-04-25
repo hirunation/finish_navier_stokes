@@ -103,7 +103,7 @@ lemma rpow_diff_antideriv_tendsto_atTop
 /-- For every constant `K`, some `R > ρ₀` makes the closed-form
     RHS-antiderivative exceed `K`. -/
 lemma exists_rpow_diff_antideriv_gt
-    {c α ρ₀ : ℝ} (hc : 0 < c) (hα : α < 1) (hρ₀ : 0 < ρ₀)
+    {c α ρ₀ : ℝ} (hc : 0 < c) (hα : α < 1) (_hρ₀ : 0 < ρ₀)
     (K : ℝ) :
     ∃ R, ρ₀ < R ∧ K < c * (R ^ (1 - α) - ρ₀ ^ (1 - α)) / (1 - α) := by
   have h_tendsto := rpow_diff_antideriv_tendsto_atTop (ρ₀ := ρ₀) hc hα
@@ -129,39 +129,97 @@ We state the bound as a separate lemma; its proof uses
 `HasDerivAt.rpow_const` + `intervalIntegral.integral_eq_sub_of_hasDerivAt`.
 -/
 
-/-- **LHS-bound (deferred).** Under the hypotheses of
-    `ode_divergence_contradiction`, for every `R ≥ ρ₀`:
+/-- **LHS-bound.** Under the hypotheses of
+    `ode_divergence_contradiction` plus continuity of `deriv E`,
+    for every `R ≥ ρ₀`:
     `∫_{ρ₀}^{R} E(ρ)^{-β}·E'(ρ) dρ ≤ E(ρ₀)^{1-β}/(β-1)`.
 
-    Proof sketch: chain rule gives
-    `HasDerivAt (E^{1-β}/(1-β)) (E^{-β}·E') ρ`; FTC gives
-    `∫ = (E(R)^{1-β} - E(ρ₀)^{1-β})/(1-β)`; rearrange using
-    `1-β < 0` and `E(R)^{1-β} > 0` (positive rpow). -/
+    Proof: chain rule gives
+    `HasDerivAt (E^{1-β}/(1-β)) (E^{-β}·E') ρ` (using
+    `HasDerivAt.rpow_const` composed with `(hE_diff ρ).hasDerivAt`);
+    `intervalIntegral.integral_eq_sub_of_hasDerivAt` gives
+    `∫ = (E(R)^{1-β} - E(ρ₀)^{1-β}) / (1-β)`; rearranging with
+    `1-β = -(β-1)` yields
+    `(E(ρ₀)^{1-β} - E(R)^{1-β}) / (β-1)`, bounded above by
+    `E(ρ₀)^{1-β} / (β-1)` since `E(R)^{1-β} > 0`. -/
 theorem lhs_FTC_bound
     {c α β ρ₀ M : ℝ} (_hc : 0 < c) (_hα : α < 1) (hβ : 1 < β)
-    (hρ₀ : 0 < ρ₀) (_hM : 0 < M)
+    (_hρ₀ : 0 < ρ₀) (_hM : 0 < M)
     (E : ℝ → ℝ)
     (hE_pos : ∀ ρ ∈ Ici ρ₀, 0 < E ρ)
-    (_hE_diff : ∀ ρ ∈ Ici ρ₀, DifferentiableAt ℝ E ρ)
+    (hE_diff : ∀ ρ ∈ Ici ρ₀, DifferentiableAt ℝ E ρ)
     (_hE_bdd : ∀ ρ ∈ Ici ρ₀, E ρ ≤ M)
     (_hODE : ∀ ρ ∈ Ici ρ₀, c * ρ ^ (-α) * (E ρ) ^ β ≤ deriv E ρ)
-    (R : ℝ) (_hR : ρ₀ ≤ R) :
+    (hE_C1 : ContinuousOn (deriv E) (Ici ρ₀))
+    (R : ℝ) (hR : ρ₀ ≤ R) :
     ∫ ρ in ρ₀..R, (E ρ) ^ (-β) * deriv E ρ ≤
       (E ρ₀) ^ (1 - β) / (β - 1) := by
-  -- Detailed FTC argument deferred.
-  -- Key constants: E(ρ₀) > 0 (from hE_pos applied at ρ₀), so
-  -- E(ρ₀)^{1-β} > 0 by Real.rpow_pos_of_pos.
-  -- Antiderivative: `fun ρ => E(ρ)^{1-β} / (1-β)`.
-  -- HasDerivAt step uses: `HasDerivAt.rpow_const`,
-  --   `HasDerivAt.div_const`.
-  -- intervalIntegral.integral_eq_sub_of_hasDerivAt yields equality.
-  -- E(R)^{1-β} > 0 + (1-β < 0) gives the upper bound.
+  have h1β : 1 - β < 0 := ode_one_sub_β_neg hβ
+  have h1β_ne : (1 - β) ≠ 0 := ne_of_lt h1β
+  have hβ_pos : 0 < β - 1 := ode_β_minus_one_pos hβ
+  have hβ_ne : (β - 1) ≠ 0 := ne_of_gt hβ_pos
   have hE_ρ₀_pos : 0 < E ρ₀ := hE_pos ρ₀ Set.self_mem_Ici
-  have h_β_pos : 0 < β - 1 := ode_β_minus_one_pos hβ
-  have h_E_ρ₀_rpow_pos : 0 < (E ρ₀) ^ (1 - β) := Real.rpow_pos_of_pos hE_ρ₀_pos _
-  -- Sign sanity: E(ρ₀)^{1-β}/(β-1) > 0; this is consistent with
-  -- the LHS being ≤ a positive constant.
-  sorry
+  -- Antiderivative.
+  set F : ℝ → ℝ := fun ρ => (E ρ) ^ (1 - β) / (1 - β) with hF_def
+  -- Step 1: HasDerivAt for ρ in [ρ₀, R].
+  have h_deriv : ∀ ρ ∈ Set.uIcc ρ₀ R,
+      HasDerivAt F ((E ρ) ^ (-β) * deriv E ρ) ρ := by
+    intro ρ hρ
+    rw [Set.uIcc_of_le hR] at hρ
+    have hρ_in : ρ ∈ Ici ρ₀ := Set.mem_Ici.mpr hρ.1
+    have hE_ρ_pos : 0 < E ρ := hE_pos ρ hρ_in
+    have hE_ρ_ne : E ρ ≠ 0 := ne_of_gt hE_ρ_pos
+    have hE_diff_ρ : HasDerivAt E (deriv E ρ) ρ := (hE_diff ρ hρ_in).hasDerivAt
+    -- Chain rule: HasDerivAt (fun ρ => (E ρ)^{1-β}) (deriv E ρ * (1-β) * (E ρ)^((1-β)-1)) ρ
+    have h_rpow := hE_diff_ρ.rpow_const (Or.inl hE_ρ_ne) (p := 1 - β)
+    -- Divide by (1-β).
+    have h_div : HasDerivAt F
+                  ((deriv E ρ * (1 - β) * (E ρ) ^ ((1 - β) - 1)) / (1 - β)) ρ := by
+      simp only [hF_def]
+      exact h_rpow.div_const (1 - β)
+    -- Simplify ((deriv E ρ) * (1-β) * E^((1-β)-1)) / (1-β) = (E ρ)^(-β) * (deriv E ρ).
+    have h_simp :
+        (deriv E ρ * (1 - β) * (E ρ) ^ ((1 - β) - 1)) / (1 - β) =
+          (E ρ) ^ (-β) * deriv E ρ := by
+      have h_exp : (1 - β) - 1 = -β := by ring
+      rw [h_exp]
+      field_simp
+    rwa [h_simp] at h_div
+  -- Step 2: integrability via continuity of E^(-β) and of deriv E.
+  have h_int : IntervalIntegrable (fun ρ => (E ρ) ^ (-β) * deriv E ρ)
+                  MeasureTheory.volume ρ₀ R := by
+    apply ContinuousOn.intervalIntegrable
+    rw [Set.uIcc_of_le hR]
+    -- Continuous (E^(-β)) on [ρ₀, R]: E continuous (from differentiable), E > 0.
+    -- Continuous (deriv E) on [ρ₀, R]: from hE_C1 restricted.
+    have hE_cont : ContinuousOn E (Icc ρ₀ R) := fun ρ hρ =>
+      (hE_diff ρ (Set.mem_Ici.mpr hρ.1)).continuousAt.continuousWithinAt
+    have hE_pow_cont : ContinuousOn (fun ρ => (E ρ) ^ (-β)) (Icc ρ₀ R) := by
+      apply hE_cont.rpow_const
+      intro ρ hρ
+      exact Or.inl (ne_of_gt (hE_pos ρ (Set.mem_Ici.mpr hρ.1)))
+    have hE_deriv_cont : ContinuousOn (deriv E) (Icc ρ₀ R) :=
+      hE_C1.mono (fun x hx => Set.mem_Ici.mpr hx.1)
+    exact hE_pow_cont.mul hE_deriv_cont
+  -- Step 3: FTC.
+  have h_FTC : ∫ ρ in ρ₀..R, (E ρ) ^ (-β) * deriv E ρ = F R - F ρ₀ :=
+    intervalIntegral.integral_eq_sub_of_hasDerivAt h_deriv h_int
+  rw [h_FTC]
+  -- Step 4: algebraic bound. F R - F ρ₀ = (E(ρ₀)^(1-β) - E(R)^(1-β))/(β-1)
+  -- ≤ E(ρ₀)^(1-β)/(β-1) since E(R)^(1-β) > 0.
+  simp only [hF_def]
+  have hE_R_pos : 0 < E R := hE_pos R (Set.mem_Ici.mpr hR)
+  have hE_R_pow_pos : 0 < (E R) ^ (1 - β) := Real.rpow_pos_of_pos hE_R_pos _
+  have hE_ρ₀_pow_pos : 0 < (E ρ₀) ^ (1 - β) := Real.rpow_pos_of_pos hE_ρ₀_pos _
+  -- Rewrite LHS: (E R)^(1-β)/(1-β) - (E ρ₀)^(1-β)/(1-β)
+  --           = ((E ρ₀)^(1-β) - (E R)^(1-β)) / (β - 1)  [using 1-β = -(β-1)]
+  have h_eq : (E R) ^ (1 - β) / (1 - β) - (E ρ₀) ^ (1 - β) / (1 - β) =
+              ((E ρ₀) ^ (1 - β) - (E R) ^ (1 - β)) / (β - 1) := by
+    field_simp
+    ring
+  rw [h_eq, div_le_div_iff_of_pos_right hβ_pos]
+  -- Goal: (E ρ₀)^(1-β) - (E R)^(1-β) ≤ (E ρ₀)^(1-β) ⟺ 0 ≤ (E R)^(1-β) ✓
+  linarith
 
 /-!
 ## Step 3: the comparison inequality
@@ -302,7 +360,8 @@ theorem ode_divergence_contradiction
     (hE_pos : ∀ ρ ∈ Ici ρ₀, 0 < E ρ)
     (hE_diff : ∀ ρ ∈ Ici ρ₀, DifferentiableAt ℝ E ρ)
     (hE_bdd : ∀ ρ ∈ Ici ρ₀, E ρ ≤ M)
-    (hODE : ∀ ρ ∈ Ici ρ₀, c * ρ ^ (-α) * (E ρ) ^ β ≤ deriv E ρ) :
+    (hODE : ∀ ρ ∈ Ici ρ₀, c * ρ ^ (-α) * (E ρ) ^ β ≤ deriv E ρ)
+    (hE_C1 : ContinuousOn (deriv E) (Ici ρ₀)) :
     False := by
   -- Step 1: pick R large enough.
   obtain ⟨R, hR_gt, hR_big⟩ :=
@@ -312,20 +371,41 @@ theorem ode_divergence_contradiction
   have h_rhs : ∫ ρ in ρ₀..R, c * ρ ^ (-α) =
       c * (R ^ (1 - α) - ρ₀ ^ (1 - α)) / (1 - α) :=
     rhs_FTC_value hc hα hρ₀ R hR_ge
-  -- Step 3: comparison gives integral inequality (assembly via FTC step).
+  -- Step 3: comparison gives integral inequality.
   have h_compare : ∫ ρ in ρ₀..R, c * ρ ^ (-α)
                   ≤ ∫ ρ in ρ₀..R, (E ρ) ^ (-β) * deriv E ρ := by
-    -- Apply pointwise comparison + integral_mono_on (assembly deferred
-    -- to the FTC closure: we need integrability of both sides on [ρ₀, R],
-    -- which follows from continuity of `c·ρ^{-α}` on `(0, ∞)` and of
-    -- `E^{-β}·E'` from `hE_pos`/`hE_diff`).
-    sorry
+    -- Pointwise (E ρ)^(-β) * deriv E ρ ≥ c · ρ^(-α) on Icc ρ₀ R from
+    -- ode_pointwise_compared. integral_mono_on requires integrability of
+    -- both sides on [ρ₀, R], which we get from continuity (Step 1 of
+    -- lhs_FTC_bound and rhs_FTC_value internally). Since interval_mono_on
+    -- needs the comparison to hold a.e. on Ι (ρ₀, R), we feed the
+    -- pointwise bound directly.
+    apply intervalIntegral.integral_mono_on hR_ge
+    · -- IntervalIntegrable lhs (rhs in this comparison)
+      apply ContinuousOn.intervalIntegrable
+      rw [Set.uIcc_of_le hR_ge]
+      apply ContinuousOn.const_mul
+      apply ContinuousOn.rpow_const continuousOn_id
+      intro x hx
+      exact Or.inl (ne_of_gt (lt_of_lt_of_le hρ₀ hx.1))
+    · -- IntervalIntegrable rhs
+      apply ContinuousOn.intervalIntegrable
+      rw [Set.uIcc_of_le hR_ge]
+      have hE_cont : ContinuousOn E (Icc ρ₀ R) := fun ρ hρ =>
+        (hE_diff ρ (Set.mem_Ici.mpr hρ.1)).continuousAt.continuousWithinAt
+      have hE_pow_cont : ContinuousOn (fun ρ => (E ρ) ^ (-β)) (Icc ρ₀ R) := by
+        apply hE_cont.rpow_const
+        intro ρ hρ
+        exact Or.inl (ne_of_gt (hE_pos ρ (Set.mem_Ici.mpr hρ.1)))
+      exact hE_pow_cont.mul (hE_C1.mono (fun x hx => Set.mem_Ici.mpr hx.1))
+    · intro ρ hρ
+      exact ode_pointwise_compared hc hβ hρ₀ E hE_pos hODE
+        (Set.mem_Ici.mpr hρ.1)
   -- Step 4: bound LHS-side.
   have h_lhs : ∫ ρ in ρ₀..R, (E ρ) ^ (-β) * deriv E ρ ≤
                 (E ρ₀) ^ (1 - β) / (β - 1) :=
-    lhs_FTC_bound hc hα hβ hρ₀ hM E hE_pos hE_diff hE_bdd hODE R hR_ge
-  -- Chain Steps 3–4 with the closed form from Step 2 to derive
-  -- the contradiction with our choice of R.
+    lhs_FTC_bound hc hα hβ hρ₀ hM E hE_pos hE_diff hE_bdd hODE hE_C1 R hR_ge
+  -- Chain Steps 2-4 to derive the contradiction with our choice of R.
   have h_chain : c * (R ^ (1 - α) - ρ₀ ^ (1 - α)) / (1 - α)
               ≤ (E ρ₀) ^ (1 - β) / (β - 1) := by
     rw [← h_rhs]
