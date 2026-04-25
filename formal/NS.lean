@@ -3,6 +3,7 @@ import NS.PDE
 import NS.HatFunction
 import NS.Energy
 import NS.ODEContradiction
+import NS.Caccioppoli
 import NS.INS_01_L3inf_Liouville
 
 /-!
@@ -33,6 +34,10 @@ Module index:
   Tree A's `odeContradiction_obligation` (Liouville Steps 6-7 of
   the paper §9). Statement + helper sign lemmas proved; main body
   `sorry`.
+- `NS.Caccioppoli` — Tree A obligation #1, the sublinear
+  Caccioppoli estimate of paper §5. Statement ported with
+  non-negativity sign helper proved; main body `sorry` pending
+  Bogovskii operator infrastructure (paper §4).
 - `NS.INS_01_L3inf_Liouville` — Theorem 1.1 of the paper
   (currently `sorry`-bodied).
 -/
