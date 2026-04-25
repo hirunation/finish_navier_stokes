@@ -2,6 +2,7 @@ import NS.Basic
 import NS.PDE
 import NS.HatFunction
 import NS.Energy
+import NS.ODEContradiction
 import NS.INS_01_L3inf_Liouville
 
 /-!
@@ -25,7 +26,13 @@ Module index:
 - `NS.Energy` — Frobenius-norm gradient `gradNormSq`,
   Euclidean annulus `annulus`, weighted energy
   `weightedEnergy`, annular gradient `annularGradSq`, and the
-  three parts of Lemma 2.2 (stated, proofs `sorry`).
+  three parts of Lemma 2.2 (D_le_rho_deriv_E and
+  annularGradSq_lb_of_integrable proved; weightedEnergy_deriv
+  + unconditional annularGradSq_lb still `sorry`).
+- `NS.ODEContradiction` — abstract real-analysis lemma underlying
+  Tree A's `odeContradiction_obligation` (Liouville Steps 6-7 of
+  the paper §9). Statement + helper sign lemmas proved; main body
+  `sorry`.
 - `NS.INS_01_L3inf_Liouville` — Theorem 1.1 of the paper
   (currently `sorry`-bodied).
 -/
