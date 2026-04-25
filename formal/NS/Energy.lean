@@ -96,6 +96,18 @@ lemma measurableSet_annulus (a b : ℝ) : MeasurableSet (annulus a b) := by
   exact (measurableSet_lt measurable_const measurable_enorm).inter
         (measurableSet_lt measurable_enorm measurable_const)
 
+/-- For a smooth vector field, the Frobenius gradient norm squared
+    is continuous. -/
+lemma continuous_gradNormSq (V : SmoothDivFreeField) :
+    Continuous (gradNormSq V.v) := by
+  have h_apply : Continuous fun p : R3 × R3 => (fderiv ℝ V.v p.1 : R3 → R3) p.2 :=
+    V.smooth.continuous_fderiv_apply (by simp)
+  unfold gradNormSq
+  refine continuous_finset_sum _ (fun i _ => continuous_finset_sum _ (fun j _ => ?_))
+  apply Continuous.pow
+  exact (continuous_apply i).comp
+        (h_apply.comp (continuous_id.prodMk continuous_const))
+
 /-- Hat-weighted energy at scale `ρ`:
     `∫ |∇v(x)|² · hat θ (|x|ₑ/ρ) dx`. -/
 noncomputable def weightedEnergy (θ : ℝ) (V : SmoothDivFreeField) (ρ : ℝ) : ℝ :=
