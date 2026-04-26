@@ -4,6 +4,9 @@ import NS.PDE
 import Mathlib.MeasureTheory.Integral.Bochner.Basic
 import Mathlib.MeasureTheory.Integral.Bochner.Set
 import Mathlib.MeasureTheory.Function.LocallyIntegrable
+import Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace
+import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
+import Mathlib.Analysis.InnerProductSpace.PiL2
 
 /-!
 # NS.Energy — weighted energy, annulus, and Lemma 2.2
@@ -96,6 +99,36 @@ lemma measurableSet_annulus (a b : ℝ) : MeasurableSet (annulus a b) := by
   unfold annulus
   exact (measurableSet_lt measurable_const measurable_enorm).inter
         (measurableSet_lt measurable_enorm measurable_const)
+
+/-- The Euclidean L² norm `enorm` on `R3 = Fin 3 → ℝ` agrees with
+    the EuclideanSpace `‖·‖` after embedding via `toLp 2`. -/
+lemma euclidean_norm_eq_enorm (x : R3) :
+    ‖(WithLp.toLp 2 x : EuclideanSpace ℝ (Fin 3))‖ = enorm x := by
+  rw [EuclideanSpace.norm_eq]
+  simp only [Real.norm_eq_abs, sq_abs]
+  rfl
+
+/-- **Spheres in the Euclidean L² norm have Lebesgue measure zero.**
+    The set `{x ∈ R³ : enorm x = c}` is a 2-sphere for `c > 0`,
+    a singleton for `c = 0`, and empty for `c < 0`; all have
+    Lebesgue measure zero in `R³`.
+
+    Proof: bridge to `EuclideanSpace ℝ (Fin 3)` via the
+    volume-preserving `toLp 2`; identify the set with
+    `Metric.sphere 0 c`; apply Mathlib's `addHaar_sphere`. -/
+lemma volume_enorm_eq_zero (c : ℝ) :
+    MeasureTheory.volume {x : R3 | enorm x = c} = 0 := by
+  -- Identify the set as the preimage of the EuclideanSpace sphere.
+  have h_set_eq : {x : R3 | enorm x = c} =
+      (WithLp.toLp 2 : R3 → EuclideanSpace ℝ (Fin 3)) ⁻¹' Metric.sphere 0 c := by
+    ext x
+    simp only [Set.mem_setOf_eq, Set.mem_preimage, Metric.mem_sphere,
+               dist_zero_right, euclidean_norm_eq_enorm]
+  rw [h_set_eq]
+  -- Volume preserved by toLp; sphere has Haar measure 0.
+  rw [(PiLp.volume_preserving_toLp (ι := Fin 3)).measure_preimage
+        Metric.isClosed_sphere.measurableSet.nullMeasurableSet]
+  exact MeasureTheory.Measure.addHaar_sphere _ 0 c
 
 /-- For a smooth vector field, the Frobenius gradient norm squared
     is continuous. -/
