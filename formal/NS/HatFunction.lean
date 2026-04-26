@@ -128,4 +128,75 @@ lemma hat_hasDerivAt_above (hθ1 : θ < 1) (h : 1 < t) : HasDerivAt (hat θ) 0 t
 
 end Deriv
 
+/-!
+## Lipschitz form
+
+The hat function admits the closed-form
+`hat θ t = max 0 (min 1 ((1 - t) / (1 - θ)))`. As composition
+of Lipschitz functions, this gives `hat θ` a global Lipschitz
+constant of `1 / (1 - θ)`.
+-/
+
+section Lipschitz
+
+variable {θ : ℝ}
+
+/-- Closed form of `hat θ` as `max 0 (min 1 ((1-t)/(1-θ)))`. -/
+lemma hat_eq_max_min (hθ1 : θ < 1) (t : ℝ) :
+    hat θ t = max 0 (min 1 ((1 - t) / (1 - θ))) := by
+  have h1θ : 0 < 1 - θ := by linarith
+  unfold hat
+  by_cases ht1 : t < θ
+  · simp only [if_pos ht1]
+    have : 1 ≤ (1 - t) / (1 - θ) := by
+      rw [le_div_iff₀ h1θ, one_mul]; linarith
+    rw [min_eq_left this]
+    exact (max_eq_right zero_le_one).symm
+  · simp only [if_neg ht1]
+    by_cases ht2 : t < 1
+    · simp only [if_pos ht2]
+      have hθt : θ ≤ t := not_lt.mp ht1
+      have hupper : (1 - t) / (1 - θ) ≤ 1 := by
+        rw [div_le_one h1θ]; linarith
+      have hlower : 0 ≤ (1 - t) / (1 - θ) :=
+        div_nonneg (by linarith) (le_of_lt h1θ)
+      rw [min_eq_right hupper, max_eq_right hlower]
+    · simp only [if_neg ht2]
+      have ht : 1 ≤ t := not_lt.mp ht2
+      have hupper : (1 - t) / (1 - θ) ≤ 0 :=
+        div_nonpos_of_nonpos_of_nonneg (by linarith) (le_of_lt h1θ)
+      have hupper' : (1 - t) / (1 - θ) ≤ 1 := le_trans hupper zero_le_one
+      rw [min_eq_right hupper']
+      rw [max_eq_left hupper]
+
+/-- The hat function is globally Lipschitz with constant `1/(1-θ)`. -/
+lemma hat_lipschitzWith (hθ1 : θ < 1) :
+    LipschitzWith (Real.toNNReal (1 / (1 - θ))) (hat θ) := by
+  have h1θ : 0 < 1 - θ := by linarith
+  have hposinv : (0 : ℝ) ≤ 1 / (1 - θ) := le_of_lt (one_div_pos.mpr h1θ)
+  -- Step 1: `t ↦ (1 - t) / (1 - θ)` is `1/(1-θ)`-Lipschitz.
+  have h_lin : LipschitzWith (Real.toNNReal (1 / (1 - θ)))
+      (fun t : ℝ => (1 - t) / (1 - θ)) := by
+    refine LipschitzWith.of_dist_le_mul fun x y => ?_
+    rw [Real.dist_eq, Real.dist_eq]
+    have hsub : (1 - x) / (1 - θ) - (1 - y) / (1 - θ) = (y - x) / (1 - θ) := by ring
+    rw [hsub, abs_div, abs_of_pos h1θ]
+    rw [Real.coe_toNNReal _ hposinv]
+    rw [abs_sub_comm y x]
+    apply le_of_eq
+    field_simp
+  -- Step 2: composition with min 1 (1-Lipschitz).
+  have h_min : LipschitzWith (Real.toNNReal (1 / (1 - θ)))
+      (fun t : ℝ => min 1 ((1 - t) / (1 - θ))) := h_lin.const_min 1
+  -- Step 3: composition with max 0.
+  have h_max : LipschitzWith (Real.toNNReal (1 / (1 - θ)))
+      (fun t : ℝ => max 0 (min 1 ((1 - t) / (1 - θ)))) := h_min.const_max 0
+  -- Step 4: rewrite to `hat θ`.
+  have heq : hat θ = (fun t : ℝ => max 0 (min 1 ((1 - t) / (1 - θ)))) := by
+    funext t; exact hat_eq_max_min hθ1 t
+  rw [heq]
+  exact h_max
+
+end Lipschitz
+
 end NS
